@@ -1,5 +1,7 @@
 # Mittler
 
+![VS Code の中の Mittler の編集画面：プレビュー、映像・曲・拍・歌詞の時刻が並んだタイムライン、クリップの欄](images/screenshot.webp)
+
 [English](README.md) | 日本語
 
 > Der Mittler zwischen Hirn und Händen muss das Herz sein.

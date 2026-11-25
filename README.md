@@ -1,5 +1,7 @@
 # Mittler
 
+![The Mittler editor in VS Code: preview, timeline with video, music, beats and lyric timing, and the clip inspector](images/screenshot.webp)
+
 English | [日本語](README.ja.md)
 
 > Der Mittler zwischen Hirn und Händen muss das Herz sein.
