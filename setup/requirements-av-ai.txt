@@ -1,0 +1,102 @@
+# 動画・音声の解析の AI（Python 3.12.10・GPU は CUDA）。2026-10-29 に入れて、tools\av_ai_check.py で7つとも動いた版（pip freeze）。
+# 入れ方（docs/インストールガイド.md の「9. 動画・音声の解析の AI」。<av_ai>＝解析用の venv を作るフォルダ）：
+#   py -3.12 -m venv <av_ai>
+#   <av_ai>\Scripts\python.exe -m pip install torch==2.14.1+cu130 torchvision==0.29.1+cu130 torchaudio==2.11.0+cu130 --index-url https://download.pytorch.org/whl/cu130
+#   <av_ai>\Scripts\python.exe -m pip install -r setup\requirements-av-ai.txt --extra-index-url https://download.pytorch.org/whl/cu130
+#   setup\av_ai_cuda12_path.pth を <av_ai>\Lib\site-packages\ に写す（faster-whisper の ctranslate2 が CUDA 12 の cuBLAS・cuDNN を探せるように）
+# モデルの置き場は環境変数 AV_AI_MODELS（設定 mittler.analysis.modelsDir。HF_HOME・TORCH_HOME・ultralytics・rembg・whisper がその下に入る）。
+# スマート アプリ コントロールがオンの PC：初めて読み込む DLL がときどき止められる。もう一度流すと通る（2026-10-29：torchvision・scipy で1回ずつ）。
+av==15.1.0  # faster-whisper 1.2.1 は av.open(metadata_errors=…) を使う。PyAV 16 からは無いので 15 に
+anyio==4.15.1
+attrs==26.1.0
+certifi==2026.10.23
+cffi==2.1.1
+charset-normalizer==3.5.2
+click==8.5.0
+cloudpickle==3.1.2
+colorama==0.4.6
+contourpy==1.4.0
+ctranslate2==4.8.4
+cycler==0.12.1
+decorator==5.3.1
+demucs==4.1.0
+einops==0.8.2
+faster-whisper==1.2.1
+filelock==4.2.4
+flatbuffers==25.12.19
+fonttools==4.68.0
+fsspec==2026.9.0
+h11==0.16.0
+hf-xet==1.7.1
+httpcore==1.0.9
+httpcore2==2.16.0
+httpx==0.28.1
+httpx2==2.16.0
+huggingface_hub==2.3.0
+idna==3.20
+ImageIO==2.38.1
+Jinja2==3.1.6
+joblib==1.6.0
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+julius==0.2.8
+kiwisolver==1.5.1
+lameenc==1.9.0
+lazy-loader==0.6
+librosa==1.0.0
+llvmlite==0.50.0
+MarkupSafe==3.0.3
+matplotlib==3.11.2
+mpmath==1.3.0
+msgpack==1.2.4
+narwhals==2.28.0
+networkx==3.7
+numba==0.68.1
+numpy==2.5.4
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cuda-nvrtc-cu12==12.9.86
+nvidia-cudnn-cu12==9.27.0.42
+nvidia-ml-py==13.615.71
+onnxruntime==1.31.1
+opencv-python==5.0.0.93
+packaging==26.3
+pillow==13.0.0
+platformdirs==4.14.0
+polars==2.1.0
+polars-runtime-32==2.1.0
+pooch==1.9.0
+protobuf==7.36.2
+psutil==7.2.2
+pycparser==3.12
+PyMatting==1.1.16
+pyparsing==3.3.3
+python-dateutil==3.0.0
+PyYAML==6.0.3
+referencing==0.37.0
+rembg==2.0.86
+requests==2.34.2
+rpds-py==2026.9.1
+safetensors==0.8.0
+scikit-image==0.26.0
+scikit-learn==1.9.1
+scipy==1.18.1
+setuptools==78.1.0
+six==1.17.0
+soundfile==0.14.0
+soxr==1.1.0
+sphn==0.2.1
+sympy==1.14.0
+threadpoolctl==3.7.0
+tifffile==2026.10.15
+tokenizers==0.23.3
+torch==2.14.1+cu130
+torchaudio==2.11.0+cu130
+torchvision==0.29.1+cu130
+tqdm==4.70.1
+truststore==0.10.5
+typing_extensions==4.16.0
+tzdata==2026.6
+ultralytics==8.4.192
+ultralytics-platform==0.1.101
+ultralytics-thop==2.2.3
+urllib3==2.8.0

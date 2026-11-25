@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- Mittler の HTML のレイヤーのひな形：three.js の立体の形。金属の結び目（トーラスノット）が跳ねて出てきて回り、まわりを小さな多面体が回る。
+     args：color（形の色）・metal（金属らしさ 0〜1）・rough（ざらつき 0〜1）・light（光の色）・scale（大きさ）・x・y（画面の位置 0〜1）
+     動きは t（クリップの頭からの秒）だけで決める。背景は透明。3D はそのままだとチープに見えやすいので、色・光・質感を場面に合わせて詰める -->
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+</head><body>
+<script type="module">
+import * as THREE from '../vendor/three.module.min.js';
+const a0 = mittler.args, W = mittler.W, H = mittler.H;
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H); renderer.setClearColor(0x000000, 0);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(35, W / H, 0.1, 100);
+camera.position.set(0, 0.4, 8); camera.lookAt(0, 0, 0);
+scene.add(new THREE.HemisphereLight(0xbfd8ff, 0x302018, 0.9));
+const key = new THREE.DirectionalLight(a0.light ?? '#ffe6c0', 3.0); key.position.set(4, 5, 6); scene.add(key);
+const rim = new THREE.PointLight('#7fb0ff', 40, 30); rim.position.set(-5, 2, -4); scene.add(rim);
+const mat = new THREE.MeshStandardMaterial({ color: a0.color ?? '#d9a441', metalness: a0.metal ?? 0.9, roughness: a0.rough ?? 0.25 });
+const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(1, 0.32, mittler.draft ? 96 : 256, mittler.draft ? 16 : 48), mat);
+const group = new THREE.Group(); group.add(knot); scene.add(group);
+const small = [];
+for (let i = 0; i < 10; i++) {
+  const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.12 + Math.random() * 0.12, 0),
+    new THREE.MeshStandardMaterial({ color: i % 2 ? '#ffffff' : (a0.color ?? '#d9a441'), metalness: 0.6, roughness: 0.3, flatShading: true }));
+  m.userData = { r: 2.2 + Math.random() * 0.8, ph: Math.random() * Math.PI * 2, sp: 0.6 + Math.random() * 0.8, y: (Math.random() - 0.5) * 1.6 };
+  group.add(m); small.push(m);
+}
+const backOut = (p, s = 1.7) => { p = Math.min(1, Math.max(0, p)) - 1; return p * p * ((s + 1) * p + s) + 1; };
+mittler.onFrame((t, a) => {
+  const dur = mittler.dur || 5, sIn = backOut(t / 0.9), sOut = 1 - Math.min(1, Math.max(0, (t - (dur - 0.5)) / 0.5));
+  const s = (a.scale ?? 1) * sIn * sOut;
+  group.scale.setScalar(Math.max(0.0001, s));
+  // 画面の位置（0〜1）→ 奥行き 0 の面の座標
+  const vh = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z, vw = vh * W / H;
+  group.position.set(((a.x ?? 0.5) - 0.5) * vw, (0.5 - (a.y ?? 0.5)) * vh, 0);
+  knot.rotation.set(t * 0.7, t * 1.1, 0);
+  for (const m of small) {
+    const u = m.userData, ang = u.ph + t * u.sp;
+    m.position.set(Math.cos(ang) * u.r, u.y + Math.sin(ang * 2) * 0.2, Math.sin(ang) * u.r);
+    m.rotation.set(t * 2 + u.ph, t * 1.5, 0);
+  }
+  renderer.render(scene, camera);
+});
+</script></body></html>

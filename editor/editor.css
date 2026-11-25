@@ -1,0 +1,639 @@
+/* Mittler 編集画面の見た目（2026-11-12 に作り直し：VS Code のテーマに合わせる。ライト／ダークどちらでも読める）。
+   1. デザイントークン（色・書体・余白・角丸・影）  2. 部品（ボタン・入力欄・タブ・窓・知らせ）  3. 画面ごと
+   色の決まり：
+   - 画面の地・文字・線・ボタンは VS Code のテーマの変数（--vscode-*）。VS Code の中では拡張が渡す（editor/ui.js）。
+     ブラウザで直に開いたときは変数が無いので、下の自前の色（--f-*。ダークが既定、ライトは prefers-color-scheme か data-theme="light"）に落ちる。
+   - 作品の中身を表す色（クリップの種類の色・メタデータの段の色・再生位置の橙・スナップの黄）は、テーマが変わっても同じ（見慣れた目印。白い字が乗る濃い色）。
+   - プレビューの周りは色みの無い灰色（絵の色が狂って見えないように。テーマの色を使わない）。
+   新しい色を足すときは、ここのトークンに足してから使う（#rrggbb を部品に直に書かない）。 */
+
+/* ---------- 1. トークン ---------- */
+:root{
+  color-scheme:dark;
+  /* 自前の色（VS Code の変数が無いとき）：ダーク */
+  --f-bg:#1f1f1f;--f-panel:#181818;--f-raised:#252526;--f-inset:#2a2a2a;--f-line:#333333;--f-line2:#454545;
+  --f-text:#cccccc;--f-strong:#ffffff;--f-dim:#9d9d9d;--f-faint:#6e6e6e;
+  --f-btn:#0078d4;--f-btn-fg:#ffffff;--f-btn-hover:#026ec1;--f-btn2:#313131;--f-btn2-fg:#cccccc;--f-btn2-hover:#3c3c3c;
+  --f-focus:#0078d4;--f-hover:rgba(128,128,128,.16);--f-sel:#04395e;--f-sel-fg:#ffffff;--f-link:#4daafc;
+  --f-ok:#73c991;--f-warn:#e2b93d;--f-bad:#f48771;--f-info:#75beff;
+  --f-shadow:rgba(0,0,0,.5);--f-scroll:rgba(121,121,121,.4);--f-scroll-hover:rgba(100,100,100,.7);
+  --stage:#141414;--stage-line:#3a3a3a;
+  --lane-meta:rgba(128,128,128,.07);--beat:rgba(160,165,180,.38);--beat-down:rgba(190,195,210,.75);
+
+  /* 意味の名前（部品はこちらを使う）。VS Code の変数があればそれ */
+  --bg:var(--vscode-editor-background,var(--f-bg));
+  --panel:var(--vscode-sideBar-background,var(--f-panel));
+  --raised:var(--vscode-editorWidget-background,var(--f-raised));
+  --inset:var(--vscode-input-background,var(--f-inset));
+  --line:var(--vscode-panel-border,var(--vscode-contrastBorder,var(--f-line)));
+  --line2:var(--vscode-input-border,var(--vscode-editorWidget-border,var(--vscode-contrastBorder,var(--f-line2))));
+  --text:var(--vscode-foreground,var(--f-text));
+  --strong:var(--vscode-editor-foreground,var(--f-strong));
+  --dim:var(--vscode-descriptionForeground,var(--f-dim));
+  --faint:var(--vscode-disabledForeground,var(--f-faint));
+  --input-fg:var(--vscode-input-foreground,var(--text));
+  --btn:var(--vscode-button-background,var(--f-btn));
+  --btn-fg:var(--vscode-button-foreground,var(--f-btn-fg));
+  --btn-hover:var(--vscode-button-hoverBackground,var(--f-btn-hover));
+  --btn2:var(--vscode-button-secondaryBackground,var(--f-btn2));
+  --btn2-fg:var(--vscode-button-secondaryForeground,var(--f-btn2-fg));
+  --btn2-hover:var(--vscode-button-secondaryHoverBackground,var(--f-btn2-hover));
+  --btn-line:var(--vscode-button-border,var(--vscode-contrastBorder,transparent));
+  --focus:var(--vscode-focusBorder,var(--f-focus));
+  --hover:var(--vscode-toolbar-hoverBackground,var(--vscode-list-hoverBackground,var(--f-hover)));
+  --sel:var(--vscode-list-activeSelectionBackground,var(--f-sel));
+  --sel-fg:var(--vscode-list-activeSelectionForeground,var(--f-sel-fg));
+  --link:var(--vscode-textLink-foreground,var(--f-link));
+  --ok:var(--vscode-testing-iconPassed,var(--f-ok));
+  --warn:var(--vscode-editorWarning-foreground,var(--f-warn));
+  --bad:var(--vscode-errorForeground,var(--f-bad));
+  --info:var(--vscode-editorInfo-foreground,var(--f-info));
+  --shadow:var(--vscode-widget-shadow,var(--f-shadow));
+  --scroll:var(--vscode-scrollbarSlider-background,var(--f-scroll));
+  --scroll-hover:var(--vscode-scrollbarSlider-hoverBackground,var(--f-scroll-hover));
+  /* 薄い地（知らせ・選んでいる行・注意の枠）：意味の色を地に混ぜる */
+  --ok-bg:color-mix(in srgb,var(--ok) 14%,var(--raised));
+  --warn-bg:color-mix(in srgb,var(--warn) 16%,var(--raised));
+  --bad-bg:color-mix(in srgb,var(--bad) 16%,var(--raised));
+  --info-bg:color-mix(in srgb,var(--info) 14%,var(--raised));
+  --on-bg:color-mix(in srgb,var(--focus) 22%,var(--btn2));
+  --sub:color-mix(in srgb,var(--text) 5%,var(--panel));     /* 欄の中の小さな箱（panel より少しだけ浮く） */
+  --sub-line:color-mix(in srgb,var(--text) 14%,var(--panel));
+
+  /* 作品の中身の色（テーマで変えない） */
+  --accent:#ff8a3d;          /* 再生位置・選んでいるクリップの枠（Mittler の橙） */
+  --snap:#ffd54f;            /* スナップ・複数選択・速さの線 */
+  --clip-fg:#ffffff;--clip-line:rgba(255,255,255,.18);--clip-label:rgba(0,0,0,.42);
+  --c-image:#1f6f66;--c-video:#2d5aa8;--c-script:#a5551e;--c-keyframes:#5a3a8c;--c-effect:#3d4c63;--c-fx-tone:#3a4a3a;--c-fx-art:#6a4a2a;--c-fx-cut:#55555f;--c-fx-glow:#5a3a7a;
+  --c-tts:#2f5b4a;--c-pending:#4a4a4a;--c-audio:#2c4a6e;--c-subtitle:#5a5530;--c-plan:#4a3a5e;--c-plan-done:#3d4a3a;
+  --m-item:#3a3f4b;--m-lyrics:#4a3b56;--m-dialogue:#2f4a3b;--m-notes:#4a4630;--m-detect:#5a2f2f;--m-cuts:#2f3b4f;--m-sections:#3b3550;--m-fg:#ececec;
+
+  /* 書体・大きさ */
+  --font:var(--vscode-font-family,"Segoe UI","Yu Gothic UI","Hiragino Sans","Noto Sans JP",sans-serif),"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji";
+  --mono:var(--vscode-editor-font-family,Consolas,"Cascadia Mono","SF Mono",Menlo,monospace),"Yu Gothic UI";
+  --fs:13px;--fs-s:12px;--fs-xs:11px;--fs-xxs:10px;
+  /* 余白・角丸・高さ */
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;
+  --r1:3px;--r2:5px;--r3:8px;
+  --ctl:24px;                /* ボタン・入力欄の高さ */
+  --head:158px;--trackH:46px;--metaH:30px;--rulerH:26px;--barH:38px;
+}
+/* 自前の色：ライト（OS・ブラウザがライトのとき。VS Code の中では ui.js が data-theme を付ける） */
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  color-scheme:light;
+  --f-bg:#ffffff;--f-panel:#f8f8f8;--f-raised:#ffffff;--f-inset:#ffffff;--f-line:#e5e5e5;--f-line2:#cecece;
+  --f-text:#3b3b3b;--f-strong:#1a1a1a;--f-dim:#616161;--f-faint:#9a9a9a;
+  --f-btn:#005fb8;--f-btn-fg:#ffffff;--f-btn-hover:#0258a8;--f-btn2:#e5e5e5;--f-btn2-fg:#3b3b3b;--f-btn2-hover:#d4d4d4;
+  --f-focus:#005fb8;--f-hover:rgba(0,0,0,.07);--f-sel:#e8f1fb;--f-sel-fg:#1a1a1a;--f-link:#005fb8;
+  --f-ok:#1a7f37;--f-warn:#7d5700;--f-bad:#b3261e;--f-info:#0063b1;
+  --f-shadow:rgba(0,0,0,.18);--f-scroll:rgba(100,100,100,.35);--f-scroll-hover:rgba(100,100,100,.6);
+  --stage:#b9b9b9;--stage-line:#8e8e8e;
+  --lane-meta:rgba(0,0,0,.035);--beat:rgba(60,70,90,.3);--beat-down:rgba(40,50,70,.62);
+}}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --f-bg:#ffffff;--f-panel:#f8f8f8;--f-raised:#ffffff;--f-inset:#ffffff;--f-line:#e5e5e5;--f-line2:#cecece;
+  --f-text:#3b3b3b;--f-strong:#1a1a1a;--f-dim:#616161;--f-faint:#9a9a9a;
+  --f-btn:#005fb8;--f-btn-fg:#ffffff;--f-btn-hover:#0258a8;--f-btn2:#e5e5e5;--f-btn2-fg:#3b3b3b;--f-btn2-hover:#d4d4d4;
+  --f-focus:#005fb8;--f-hover:rgba(0,0,0,.07);--f-sel:#e8f1fb;--f-sel-fg:#1a1a1a;--f-link:#005fb8;
+  --f-ok:#1a7f37;--f-warn:#7d5700;--f-bad:#b3261e;--f-info:#0063b1;
+  --f-shadow:rgba(0,0,0,.18);--f-scroll:rgba(100,100,100,.35);--f-scroll-hover:rgba(100,100,100,.6);
+  --stage:#b9b9b9;--stage-line:#8e8e8e;
+  --lane-meta:rgba(0,0,0,.035);--beat:rgba(60,70,90,.3);--beat-down:rgba(40,50,70,.62);
+}
+:root[data-theme="dark"]{color-scheme:dark}
+
+/* ---------- 2. 部品 ---------- */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:var(--fs)/1.4 var(--font);overflow:hidden}
+body{display:grid;grid-template-rows:auto minmax(160px,1fr) auto minmax(140px,38%)}
+[hidden]{display:none!important}
+
+/* ボタン：ふつう（副）・主（.primary）・危険（.danger／.armed）・アイコンだけ（.ib）・選んでいる（.on）・押せない（:disabled） */
+button{font:inherit;font-size:var(--fs-s);min-height:var(--ctl);background:var(--btn2);color:var(--btn2-fg);border:1px solid var(--btn-line);border-radius:var(--r1);padding:1px 10px;cursor:pointer;white-space:nowrap}
+button:hover{background:var(--btn2-hover)}
+button:active{filter:brightness(.94)}
+button:disabled{opacity:.45;cursor:not-allowed;filter:none}
+button:disabled:hover{background:var(--btn2)}
+button.primary{background:var(--btn);color:var(--btn-fg)}
+button.primary:hover{background:var(--btn-hover)}
+button.primary:disabled:hover{background:var(--btn)}
+button.danger,button.armed,#trDel.armed,.ttsAllBtn.running{background:var(--bad-bg);border-color:var(--bad);color:var(--text)}
+button.on{background:var(--on-bg);border-color:var(--focus);color:var(--strong)}
+button.ib{min-width:var(--ctl);padding:1px 6px}
+button .lb{margin-left:4px}
+/* アイコン（絵文字をやめて、モノグラムのアイコンで統一する）：
+   Lucide（ISC。editor/icons/*.svg をそのまま。出どころは THIRD_PARTY_NOTICES.md）を、字の色（currentColor）1 色の型抜きで出す。
+   大きさは 15px（小さい字の所は 13px・11px）、線は Lucide の決まり（24 の枠に 2・丸い端）。字とのあいだは文の空白か .lb の余白。
+   作り方：JS は MITTLER_ICON('名前')（ui.js）、辞書の文は {icon:名前}（ui.js が画面でアイコンに置きかえる）、HTML は <i class="ic" data-ic="名前"></i>。
+   名前を足すときは、editor/icons/ に Lucide の SVG を写して、下の一覧に 1 行足す（tools/smoke_icons.py が、使っている名前・ファイル・一覧がそろっているかを見る） */
+.ic{display:inline-block;width:var(--ic,15px);height:var(--ic,15px);flex:none;vertical-align:-3px;background:currentColor;-webkit-mask:var(--ic-src) center/contain no-repeat;mask:var(--ic-src) center/contain no-repeat}
+.ic[data-ic="arrow-down"]{--ic-src:url(icons/arrow-down.svg)}.ic[data-ic="arrow-left-to-line"]{--ic-src:url(icons/arrow-left-to-line.svg)}.ic[data-ic="arrow-up"]{--ic-src:url(icons/arrow-up.svg)}
+.ic[data-ic="copy-plus"]{--ic-src:url(icons/copy-plus.svg)}.ic[data-ic="badge-plus"]{--ic-src:url(icons/badge-plus.svg)}.ic[data-ic="box"]{--ic-src:url(icons/box.svg)}.ic[data-ic="camera"]{--ic-src:url(icons/camera.svg)}
+.ic[data-ic="captions"]{--ic-src:url(icons/captions.svg)}.ic[data-ic="cassette-tape"]{--ic-src:url(icons/cassette-tape.svg)}.ic[data-ic="check"]{--ic-src:url(icons/check.svg)}
+.ic[data-ic="chevron-down"]{--ic-src:url(icons/chevron-down.svg)}.ic[data-ic="chevrons-left"]{--ic-src:url(icons/chevrons-left.svg)}.ic[data-ic="circle"]{--ic-src:url(icons/circle.svg)}.ic[data-ic="circle-check"]{--ic-src:url(icons/circle-check.svg)}
+.ic[data-ic="clapperboard"]{--ic-src:url(icons/clapperboard.svg)}.ic[data-ic="clipboard-paste"]{--ic-src:url(icons/clipboard-paste.svg)}.ic[data-ic="copy"]{--ic-src:url(icons/copy.svg)}
+.ic[data-ic="dices"]{--ic-src:url(icons/dices.svg)}.ic[data-ic="drum"]{--ic-src:url(icons/drum.svg)}.ic[data-ic="eraser"]{--ic-src:url(icons/eraser.svg)}
+.ic[data-ic="eye"]{--ic-src:url(icons/eye.svg)}.ic[data-ic="eye-off"]{--ic-src:url(icons/eye-off.svg)}.ic[data-ic="film"]{--ic-src:url(icons/film.svg)}
+.ic[data-ic="folder"]{--ic-src:url(icons/folder.svg)}.ic[data-ic="folder-open"]{--ic-src:url(icons/folder-open.svg)}.ic[data-ic="ghost"]{--ic-src:url(icons/ghost.svg)}
+.ic[data-ic="hourglass"]{--ic-src:url(icons/hourglass.svg)}.ic[data-ic="image"]{--ic-src:url(icons/image.svg)}.ic[data-ic="link"]{--ic-src:url(icons/link.svg)}
+.ic[data-ic="magnet"]{--ic-src:url(icons/magnet.svg)}.ic[data-ic="mic"]{--ic-src:url(icons/mic.svg)}.ic[data-ic="microscope"]{--ic-src:url(icons/microscope.svg)}
+.ic[data-ic="mouse-pointer-2"]{--ic-src:url(icons/mouse-pointer-2.svg)}.ic[data-ic="move-horizontal"]{--ic-src:url(icons/move-horizontal.svg)}.ic[data-ic="move-up-right"]{--ic-src:url(icons/move-up-right.svg)}
+.ic[data-ic="music"]{--ic-src:url(icons/music.svg)}.ic[data-ic="palette"]{--ic-src:url(icons/palette.svg)}.ic[data-ic="pause"]{--ic-src:url(icons/pause.svg)}
+.ic[data-ic="pencil"]{--ic-src:url(icons/pencil.svg)}.ic[data-ic="person-standing"]{--ic-src:url(icons/person-standing.svg)}.ic[data-ic="play"]{--ic-src:url(icons/play.svg)}.ic[data-ic="info"]{--ic-src:url(icons/info.svg)}
+.ic[data-ic="ratio"]{--ic-src:url(icons/ratio.svg)}.ic[data-ic="rectangle-horizontal"]{--ic-src:url(icons/rectangle-horizontal.svg)}.ic[data-ic="redo-2"]{--ic-src:url(icons/redo-2.svg)}.ic[data-ic="rectangle-vertical"]{--ic-src:url(icons/rectangle-vertical.svg)}
+.ic[data-ic="refresh-cw"]{--ic-src:url(icons/refresh-cw.svg)}.ic[data-ic="scissors"]{--ic-src:url(icons/scissors.svg)}.ic[data-ic="scroll-text"]{--ic-src:url(icons/scroll-text.svg)}
+.ic[data-ic="skip-back"]{--ic-src:url(icons/skip-back.svg)}.ic[data-ic="skip-forward"]{--ic-src:url(icons/skip-forward.svg)}.ic[data-ic="sparkles"]{--ic-src:url(icons/sparkles.svg)}
+.ic[data-ic="speech"]{--ic-src:url(icons/speech.svg)}.ic[data-ic="square"]{--ic-src:url(icons/square.svg)}.ic[data-ic="circle-x"]{--ic-src:url(icons/circle-x.svg)}
+.ic[data-ic="step-back"]{--ic-src:url(icons/step-back.svg)}.ic[data-ic="step-forward"]{--ic-src:url(icons/step-forward.svg)}.ic[data-ic="sticky-note"]{--ic-src:url(icons/sticky-note.svg)}
+.ic[data-ic="tags"]{--ic-src:url(icons/tags.svg)}.ic[data-ic="timer"]{--ic-src:url(icons/timer.svg)}.ic[data-ic="trash-2"]{--ic-src:url(icons/trash-2.svg)}
+.ic[data-ic="triangle-alert"]{--ic-src:url(icons/triangle-alert.svg)}.ic[data-ic="trophy"]{--ic-src:url(icons/trophy.svg)}.ic[data-ic="turtle"]{--ic-src:url(icons/turtle.svg)}
+.ic[data-ic="undo-2"]{--ic-src:url(icons/undo-2.svg)}.ic[data-ic="user"]{--ic-src:url(icons/user.svg)}.ic[data-ic="volume-1"]{--ic-src:url(icons/volume-1.svg)}
+.ic[data-ic="volume-2"]{--ic-src:url(icons/volume-2.svg)}.ic[data-ic="volume-x"]{--ic-src:url(icons/volume-x.svg)}.ic[data-ic="x"]{--ic-src:url(icons/x.svg)}
+.ic.sp{margin-right:4px}  /* 辞書の文の「{icon:名前} 字」：アイコンと字のあいだ */
+/* 警告の印（⚠ の代わり）は警告の色 */
+.ic[data-ic="triangle-alert"]{color:var(--warn)}
+/* キーボードのフォーカス：どの部品も同じ枠（マウスで押したときは出さない） */
+:focus{outline:none}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.xchoice label:has(input:focus-visible),.xseg label:has(input:focus-visible){outline:1px solid var(--focus);outline-offset:1px}
+input[type=range]:focus-visible{outline-offset:3px}
+
+/* 入力欄・選ぶ欄・文字の欄 */
+input[type=number],input[type=text],input:not([type]),select,textarea{font:var(--fs-s)/1.45 var(--font);background:var(--inset);color:var(--input-fg);border:1px solid var(--line2);border-radius:var(--r1);padding:2px 6px}
+input[type=number],input[type=text],input:not([type]),select{min-height:var(--ctl)}
+input[type=number]{font-family:var(--mono)}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--focus)}
+input:disabled,select:disabled,textarea:disabled{opacity:.5}
+input.bad,textarea.bad,.form textarea.bad,.mhead input.bad{border-color:var(--bad);color:var(--bad)}
+input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--btn)}
+input[type=color]{width:44px;height:var(--ctl);padding:1px;background:var(--inset);border:1px solid var(--line2);border-radius:var(--r1)}
+::placeholder{color:var(--faint)}
+a{color:var(--link)}
+code{font:var(--fs-xs) var(--mono)}
+summary{cursor:pointer}
+
+/* スクロールバー */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:5px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--scroll-hover);border:2px solid transparent;background-clip:padding-box}
+
+/* 小さな共通の部品 */
+.sp{flex:1}
+.empty{color:var(--dim);font-size:var(--fs-s)}
+.tdim{color:var(--dim);font-size:var(--fs-xs)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.form{display:grid;grid-template-columns:auto 1fr;gap:5px 8px;align-items:center;font-size:var(--fs-s);margin:6px 0}
+.form label{color:var(--dim);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.form input[type=number],.form input[type=text],.form select{width:100%}
+.form textarea{width:100%;min-height:54px;font:var(--fs-xs)/1.45 var(--mono)}
+.form .fnum{display:flex;align-items:center;gap:6px;min-width:0}.form .fnum input{flex:1;min-width:0}
+.fhint{font:var(--fs-xs) var(--mono);color:var(--dim);white-space:nowrap;min-width:38px}
+.doc{font-size:var(--fs-xs);color:var(--dim);white-space:pre-wrap;max-height:120px;overflow:auto;background:var(--sub);padding:6px;border-radius:var(--r2)}
+.slider{display:grid;grid-template-columns:78px 1fr 44px;gap:6px;align-items:center;font-size:var(--fs-s)}
+.slider input{width:100%}
+.slider span:last-child{font-family:var(--mono);text-align:right}
+.metaRow{font-size:var(--fs-s);margin:2px 0}.metaRow b{color:var(--dim);font-weight:500;margin-right:6px}
+
+/* 上から下がる小さなメニュー（⏱・📐・🧲） */
+.durWrap,.sizeWrap,.snapWrap{position:relative;display:inline-flex}
+#durMenu,#sizeMenu,#snapMenu,#ctxMenu{background:var(--raised);color:var(--text);border:1px solid var(--line2);border-radius:var(--r2);box-shadow:0 4px 14px var(--shadow);font-size:var(--fs-s)}
+#durMenu,#sizeMenu,#snapMenu{position:absolute;top:calc(100% + 4px);z-index:20;display:flex;flex-direction:column;white-space:nowrap}
+#durMenu{left:0;padding:8px;gap:6px;min-width:260px}
+#durMenu .dm{display:flex;align-items:center;gap:6px}
+#durMenu input{width:90px}
+#durMenu .tdim{white-space:normal;max-width:280px}
+#sizeMenu{left:0;padding:6px;gap:4px;min-width:220px}
+#sizeMenu button,#ctxMenu button{text-align:left;background:transparent;border-color:transparent}
+#sizeMenu button:hover,#ctxMenu button:hover:not(:disabled){background:var(--hover)}
+#sizeMenu button.on{background:var(--sel);color:var(--sel-fg)}
+#sizeMenu .tdim{white-space:normal;max-width:240px;padding:2px 4px}
+#snapMenu{right:0;padding:6px 10px;gap:4px}
+#snapMenu label{display:flex;align-items:center;gap:6px;cursor:pointer}
+#ctxMenu{position:fixed;z-index:60;padding:6px;display:flex;flex-direction:column;gap:2px;min-width:260px;max-width:340px}
+#ctxMenu .cmh{font-weight:600;padding:2px 6px 6px;border-bottom:1px solid var(--line);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ctxMenu .tdim{padding:2px 6px}
+
+/* 知らせ（右下のトースト。editor/ui.js の MITTLER_NOTIFY）：左の帯の色で種類が分かる。失敗と注意は閉じるまで残る */
+#mittlerToasts{position:fixed;right:12px;bottom:12px;z-index:70;display:flex;flex-direction:column;gap:6px;max-width:min(460px,calc(100vw - 24px));pointer-events:none}
+.mittlerToast{pointer-events:auto}
+.mittlerToast{display:flex;align-items:flex-start;gap:8px;background:var(--ok-bg);border:1px solid color-mix(in srgb,var(--ok) 45%,var(--line2));border-left:4px solid var(--ok);color:var(--text);border-radius:var(--r2);padding:8px 8px 8px 10px;font-size:var(--fs-s);line-height:1.5;box-shadow:0 3px 12px var(--shadow);cursor:pointer}
+.mittlerToast .tbody{flex:1;min-width:0;white-space:pre-wrap;word-break:break-word}
+/* 知らせの種類の印：Lucide のアイコン（できた circle-check・ふつう info・注意 triangle-alert・失敗 circle-x）を種類の色で */
+.mittlerToast .tmark{flex:none;width:15px;height:15px;margin-top:2px;color:var(--ok);background:currentColor;-webkit-mask:var(--tm,url(icons/circle-check.svg)) center/contain no-repeat;mask:var(--tm,url(icons/circle-check.svg)) center/contain no-repeat}
+.mittlerToast .tclose{flex:none;min-height:0;min-width:0;padding:0 5px;background:transparent;border:0;color:var(--dim);font-size:14px;line-height:18px}
+.mittlerToast .tclose:hover{color:var(--strong);background:var(--hover)}
+.mittlerToast .tact{flex:none;align-self:center}
+.mittlerToast.info{background:var(--info-bg);border-color:color-mix(in srgb,var(--info) 45%,var(--line2));border-left-color:var(--info)}.mittlerToast.info .tmark{color:var(--info);--tm:url(icons/info.svg)}
+.mittlerToast.warn{background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 50%,var(--line2));border-left-color:var(--warn)}.mittlerToast.warn .tmark{color:var(--warn);--tm:url(icons/triangle-alert.svg)}
+.mittlerToast.bad{background:var(--bad-bg);border-color:color-mix(in srgb,var(--bad) 55%,var(--line2));border-left-color:var(--bad)}.mittlerToast.bad .tmark{color:var(--bad);--tm:url(icons/circle-x.svg)}
+
+/* 窓（画面の上に出る：新しい作品・コード） */
+.mdlg{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-start;justify-content:center;padding-top:9vh;background:color-mix(in srgb,#000 38%,transparent)}
+.mdlg .box{width:520px;max-width:calc(100vw - 24px);max-height:82vh;overflow:auto;background:var(--raised);color:var(--text);border:1px solid var(--line2);border-radius:var(--r3);box-shadow:0 14px 44px var(--shadow);font-size:var(--fs-s)}
+.mdlg .dh{display:flex;align-items:center;gap:8px;padding:10px 12px 9px 16px;border-bottom:1px solid var(--line)}
+.mdlg .dh b{font-size:14px;font-weight:600;color:var(--strong)}
+.mdlg .dh .xx,.xhead .xx{background:transparent;border:0;color:var(--dim);font-size:var(--fs);padding:2px 6px;min-height:0}
+.mdlg .dh .xx:hover,.xhead .xx:hover{color:var(--strong);background:var(--hover)}
+.mdlg .db{padding:12px 16px 4px}
+.mdlg .df{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:10px 16px;border-top:1px solid var(--line);background:var(--sub)}
+.mdlg .df button{padding:3px 14px}
+.mdlg .dl{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:start;margin:0 0 10px}
+.mdlg .dl>label{color:var(--dim);padding-top:4px;white-space:nowrap}
+.mdlg .dl input[type=text],.mdlg .dl input[type=number],.mdlg .dl select{width:100%}
+.mdlg .drow{display:flex;gap:6px;align-items:center}.mdlg .drow input{flex:1;min-width:0}
+.mdlg .dnote{color:var(--dim);font-size:var(--fs-xs);margin-top:4px;line-height:1.5}
+.mdlg .derr{color:var(--bad);margin:0 0 8px;white-space:pre-wrap;word-break:break-word}.mdlg .derr:empty{display:none}
+.mdlg .dok{margin:0 0 10px;padding:8px 10px;border:1px solid color-mix(in srgb,var(--ok) 45%,var(--line2));border-radius:var(--r2);background:var(--ok-bg);line-height:1.6}
+.mdlg .dok code{word-break:break-all;color:var(--strong)}
+
+/* ---------- 3. 画面ごと ---------- */
+/* 上のバー */
+#bar{display:flex;align-items:center;gap:6px;padding:0 10px;min-height:var(--barH);background:var(--panel);border-bottom:1px solid var(--line);min-width:0}
+#bar>button,#bar>span>button{flex:none}
+#bar .gap{flex:none;width:1px;height:18px;background:var(--line);margin:0 2px}
+.file{font-weight:600;color:var(--strong);min-width:40px;max-width:26vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 上のバーの 1 行の知らせ（#status）：種類で色が変わる（data-level は editor.js の setStatus が付ける）。押せる知らせ（act）はボタンの形 */
+.status{flex:0 1 auto;min-width:0;max-width:44vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-s);color:var(--dim);padding:2px 8px;border-radius:var(--r1);border:1px solid transparent}
+.status:empty{display:none}
+.status[data-level="ok"]{color:var(--ok)}
+.status[data-level="busy"]{color:var(--info)}
+.status[data-level="warn"]{color:var(--warn);background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+.status[data-level="bad"]{color:var(--bad);background:var(--bad-bg);border-color:color-mix(in srgb,var(--bad) 50%,transparent);font-weight:600}
+.status[data-level="act"]{color:var(--link);background:var(--btn2);border-color:var(--line2);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.status[data-level="act"]:hover{background:var(--btn2-hover)}
+.zoom{color:var(--dim);font-size:var(--fs-s);display:flex;align-items:center;gap:4px;white-space:nowrap;flex:none}
+.zoom input{width:120px}
+/* 画面の言葉の切り替え（EN／日本語。editor/i18n.js）：押しているほうが選んでいる言葉 */
+.langSel{display:inline-flex;flex:none;border:1px solid var(--line2);border-radius:var(--r1);overflow:hidden}
+.langSel button{min-height:22px;padding:0 7px;border:0;border-radius:0;background:transparent;color:var(--dim);font-size:var(--fs-xs)}
+.langSel button+button{border-left:1px solid var(--line2)}
+.langSel button:hover{background:var(--hover);color:var(--text)}
+.langSel button.on{background:var(--sel);color:var(--sel-fg);font-weight:600}
+#assetToggle.on,#shyBtn.on{background:var(--on-bg);border-color:var(--focus);color:var(--strong)}
+/* AI を追う（オートモード）の切り替え（editor/remote.js）：オンは選んでいる見た目、オフは薄く */
+#followBtn{opacity:.6}
+#followBtn.on{opacity:1;background:color-mix(in srgb,var(--info) 24%,var(--btn2));border-color:color-mix(in srgb,var(--info) 70%,var(--line2));color:var(--strong)}
+#snapBtn{opacity:.6}
+#snapBtn.on{opacity:1;background:color-mix(in srgb,var(--snap) 24%,var(--btn2));border-color:color-mix(in srgb,var(--snap) 70%,var(--line2));color:var(--strong)}
+#snapMenuBtn{padding:0 4px;min-width:0;margin-left:1px}
+#exportBtn.busy,#masterBtn.busy{border-color:var(--accent);color:var(--strong);background:color-mix(in srgb,var(--accent) 20%,var(--btn2))}
+#annotBtn.on{background:#e5372b;border-color:#e5372b;color:#fff}
+/* 狭い幅：ボタンの名前をたたむ（アイコンとツールチップは残る） */
+@media (max-width:1380px){#bar .lb.opt{display:none}}
+@media (max-width:1100px){#bar .lb{display:none}#bar{gap:4px;padding:0 6px}.zoom>span{display:none}.zoom input{width:84px}.status{max-width:30vw}}
+/* 幅が狭いとき：言葉の切り替えと拡大のつまみを細く（日本語の「全体」「書き出し」が長くても、幅 900 でバーに収まるように） */
+@media (max-width:1000px){.langSel button{padding:0 4px}.zoom input{width:40px}#bar{gap:3px}}  /* 2026-11-15：上のバーに「オート」が増えたぶん、拡大のつまみを短く */
+
+/* 上の段：左のアセット窓・プレビュー・右の欄 */
+#top{display:grid;grid-template-columns:290px 1fr 330px;min-height:0}
+#top:has(#assets[hidden]){grid-template-columns:1fr 330px}
+@media (max-width:1100px){#top{grid-template-columns:240px 1fr 290px}#top:has(#assets[hidden]){grid-template-columns:1fr 290px}}
+#stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:0;padding:8px 8px 0;background:var(--stage)}
+#screen{position:relative;margin:auto 0;background:#000;box-shadow:0 0 0 1px var(--stage-line)}  /* 上下の余白は画面の上下に分け、再生の操作の帯は欄のいちばん下へ寄せる */
+/* 描画のエラーの箱（その時刻の1コマが描けなかったとき。文は選んでコピーでき、次にその時刻が描けるまで残る） */
+#renderErr{position:absolute;left:8px;right:8px;top:8px;max-height:calc(100% - 16px);display:flex;flex-direction:column;z-index:5;background:rgba(20,8,8,.92);color:#ffd9d9;border:1px solid #c0504d;border-radius:6px;padding:8px 10px;font-size:12px;box-shadow:0 2px 12px rgba(0,0,0,.5)}
+#renderErr[hidden]{display:none}
+#renderErr .reHead{display:flex;align-items:center;gap:8px}
+#renderErr .reHead b{flex:1;user-select:text;-webkit-user-select:text;word-break:break-all}
+#renderErr .reBtns{display:flex;gap:6px;flex:none}
+#renderErr .reNote{opacity:.8;margin:4px 0}
+#renderErr .reText{margin:0;overflow:auto;flex:1;min-height:3em;white-space:pre-wrap;word-break:break-all;font-family:var(--vscode-editor-font-family,Consolas,monospace);font-size:11px;user-select:text;-webkit-user-select:text;cursor:text;background:rgba(0,0,0,.35);padding:6px;border-radius:4px}
+#screen.hasErr #frameImg{opacity:.25}
+#proxy,#frameImg,#gradeCv,#takeView{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;background:#000}
+#gradeCv{background:transparent}
+.srcTag{position:absolute;left:8px;top:8px;font-size:var(--fs-xs);background:rgba(0,0,0,.72);color:#ffd38a;padding:2px 6px;border-radius:var(--r1);pointer-events:none}
+.srcTag:empty{display:none}
+/* ▶ 再生の操作（プレビューの下の真ん中） */
+#transport{flex:none;align-self:stretch;margin:0 -8px;padding:5px 10px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;user-select:none;background:var(--panel);border-top:1px solid var(--line)}
+#transport .tpl{justify-self:end;display:flex;align-items:baseline;gap:8px}
+#transport .tpc{display:flex;align-items:center;gap:4px}
+#transport .tpc button{min-width:34px;height:26px;padding:0 6px}
+#transport #play{min-width:52px;font-size:15px;background:var(--btn);color:var(--btn-fg)}
+#transport #play:hover{background:var(--btn-hover)}
+#transport .tpr{justify-self:start;display:flex;align-items:center;gap:10px;min-width:0;max-width:100%;overflow:hidden}
+#transport .tpl,#transport .tpc{flex:none}
+#transport .pvScale{font-size:var(--fs-xs);color:var(--dim);white-space:nowrap;display:flex;align-items:center;gap:4px}
+#transport .pvScale select{font-size:var(--fs-xs);padding:0 2px;min-height:22px}
+#transport .bakeBtn{position:relative;font-size:var(--fs-xxs);min-height:22px;padding:0 5px;display:flex;align-items:center;gap:3px;white-space:nowrap;font-variant-numeric:tabular-nums;flex:none}
+#transport .bakeBtn #bakeTxt:empty{display:none}
+#transport .bakeBtn.run{color:var(--ok)}
+#transport .bakeBtn.off .ic{opacity:.45}#transport .bakeBtn.off::after{content:'';position:absolute;left:4px;right:4px;top:50%;border-top:2px solid currentColor;transform:rotate(-35deg)}
+.time{font:15px/1 var(--mono);color:var(--strong)}.frame{font:var(--fs-s) var(--mono);color:var(--dim)}
+.cutNow{color:var(--dim);font-size:var(--fs-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cutNow:not(:empty){padding:1px 7px;border:1px solid var(--line2);border-radius:10px}
+@media (max-width:1100px){#transport{gap:6px;grid-template-columns:auto auto minmax(0,auto);justify-content:center;padding:5px 4px}#transport .pvScale>span{display:none}#transport .tpc{gap:2px}#transport .tpc button{min-width:28px}#transport #play{min-width:40px}#transport .tpl{gap:5px}}
+
+/* 右の欄（クリップ・色・メタデータ） */
+#inspector{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;padding:0;overflow:hidden;min-width:0}
+#inspector h2{font-size:var(--fs-xs);color:var(--dim);font-weight:600;margin:10px 0 6px}
+#inspector pre{margin:0;font:var(--fs-xs)/1.45 var(--mono);white-space:pre-wrap;word-break:break-all;color:var(--text)}
+.ptabs{display:flex;border-bottom:1px solid var(--line);flex:none}
+.ptabs button{flex:1;border:0;border-radius:0;background:transparent;color:var(--dim);padding:8px 4px 6px;font-size:var(--fs-s);border-bottom:2px solid transparent;min-height:0}
+.ptabs button:hover{background:var(--hover);color:var(--text)}
+.ptabs button.on{color:var(--strong);border-bottom-color:var(--focus);background:transparent}
+#inspector .pane{flex:1;min-height:0;overflow:auto;padding:8px 10px}
+#inspector .pane[data-p="meta"]{display:flex;flex-direction:column}
+#inspector .pane[data-p="meta"] #metaBody{flex:1;min-height:0}
+#gradePanel h2:first-child{margin-top:0}
+#sel textarea,#sel input.wide,.ttsText{width:100%}
+.ttsText{font-size:var(--fs);line-height:1.5;padding:4px 6px}
+#sel textarea.lines{font:var(--fs)/1.5 var(--font)}
+#sel .form label.own{color:var(--warn)}   /* 字幕（ASS）：この字幕だけ変えた項目 */
+#sel code{color:var(--text)}
+.ithumb{max-width:100%;border-radius:var(--r2);margin:4px 0}
+/* 欄の中の箱（🎬 の段・🎨 クリップの色・🎵 Suno） */
+.planSec,.cgrade{border:1px solid var(--sub-line);border-radius:var(--r2);padding:8px;margin:8px 0;background:var(--sub)}
+.planSec h3,.cgrade h3{font-size:var(--fs-s);font-weight:600;margin:0 0 6px;color:var(--strong)}
+.planSec .pthumb{max-width:100%;max-height:120px;display:block;margin:4px 0;border-radius:var(--r1)}
+.planSec textarea{width:100%;min-height:70px}
+.planSec .soon{font-size:var(--fs-xxs);color:var(--dim)}
+.takes .take{display:flex;align-items:center;gap:5px;font-size:var(--fs-xs);padding:2px 0}
+.takes .take.on{color:var(--strong);font-weight:600}.takes .tid{font-family:var(--mono)}
+.ttext{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+/* 🎬 参照のチップ・キャラの差分・テイク */
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.chip{display:inline-flex;align-items:center;gap:3px;font-size:var(--fs-xs);background:var(--btn2);color:var(--btn2-fg);border:1px solid var(--line2);border-radius:10px;padding:1px 7px 1px 2px}
+.chip img{width:18px;height:18px;object-fit:cover;border-radius:50%}
+.chip b{font-size:9px;background:var(--accent);color:#000;border-radius:6px;padding:0 4px;margin-left:2px}
+.chip.bad{border-color:var(--bad);color:var(--bad)}.chip.warn{border-color:var(--warn);color:var(--warn)}
+.variants .variant{display:grid;grid-template-columns:90px 1fr;gap:4px;margin:3px 0}
+.ptakes{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.ptake{width:88px;cursor:pointer;font-size:var(--fs-xxs);color:var(--dim);text-align:center;border:1px solid transparent;border-radius:var(--r1);padding:1px}
+.ptake img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:2px;display:block}
+.ptake.on{border-color:var(--focus);color:var(--strong);background:var(--sel)}
+.jobst{font-size:var(--fs-xs);color:var(--info);align-self:center}.jobst.bad{color:var(--bad)}
+.vtakes{margin:4px 0}
+.vtake{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);cursor:pointer;border-radius:var(--r1);padding:2px 3px}
+.vtake:hover{background:var(--hover)}.vtake.on{background:var(--sel);color:var(--sel-fg)}.vtake.on span{color:inherit}
+.vtake .adopt{margin-left:auto;font-size:var(--fs-xs);padding:0 6px;min-height:20px}
+.vtake input{margin:0}.vtake .vplay{padding:0 6px;font-size:var(--fs-xxs);min-height:20px}
+.vtake .draftTag{color:var(--warn);font-weight:600}
+.vtake .vthumb{width:64px;height:36px;object-fit:cover;background:#000;border-radius:var(--r1);flex:none;cursor:pointer}
+.vtake .vctl{display:flex;align-items:center;gap:4px;flex-basis:100%;padding:2px 0 2px 22px}
+.vtake .vctl input[type=range]{flex:1;min-width:60px}.vtake .vctl .vtime{font-variant-numeric:tabular-nums;font-size:var(--fs-xxs)}
+.vtake .vctl button{padding:0 6px;font-size:var(--fs-xxs);min-height:20px}
+.vtake{flex-wrap:wrap}
+.seedRow{display:flex;align-items:center;gap:6px}.seedRow .reseed{padding:0 6px;font-size:var(--fs-xs)}
+/* 🎵 音ハメ（warp.js）のグラフ */
+#sel .wgraph{display:block;border:1px solid var(--line2);border-radius:var(--r1);background:var(--inset);cursor:crosshair;margin:4px 0}
+#sel .wread{font:var(--fs-xs) var(--mono);min-height:14px}
+#sel .whelp{font-size:var(--fs-xs)}
+/* 🎵 Suno の曲（music.js） */
+.musicSec textarea.short{min-height:40px}
+.musicSec .mtake{flex-wrap:wrap;cursor:default}.musicSec .mtake>span{flex:1 1 160px;min-width:0}.musicSec .mtake button{padding:0 6px;font-size:var(--fs-xs);min-height:20px}
+.musicSec .muConfirm{border:1px solid color-mix(in srgb,var(--warn) 55%,var(--line2));background:var(--warn-bg);border-radius:var(--r2);padding:6px;margin:4px 0;font-size:var(--fs-xs);line-height:1.5}
+.musicSec .muWait{border:1px solid color-mix(in srgb,var(--info) 50%,var(--line2));background:var(--info-bg);border-radius:var(--r2);padding:5px 6px;margin:6px 0;font-size:var(--fs-xs);line-height:1.5}.musicSec .muWait button{margin-left:6px;font-size:var(--fs-xs);padding:0 6px;min-height:20px}
+.musicSec .mplayer audio{width:100%;margin-top:4px}
+/* メタデータのタブ */
+.tabs{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px}
+.tab,.atabs button{padding:1px 8px;font-size:var(--fs-s);min-height:22px;border-radius:var(--r1);background:transparent;border-color:var(--line2);color:var(--dim)}
+.tab:hover,.atabs button:hover{background:var(--hover);color:var(--text)}
+.tab.on,.atabs button.on{background:var(--sel);color:var(--sel-fg);border-color:var(--focus)}
+.tab .n{margin-left:5px;font-size:var(--fs-xxs);opacity:.75}
+#metaBody{flex:1;min-height:180px;overflow:auto;padding-right:2px}
+.mrow{border:1px solid var(--sub-line);border-radius:var(--r2);padding:5px 6px;margin:0 0 5px;background:var(--sub)}
+.mrow.now{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--sub))}
+#metaBody .mrow.picked{box-shadow:inset 3px 0 var(--snap)}
+.mhead{display:flex;align-items:center;gap:4px;font-size:var(--fs-xs);margin-bottom:3px}
+.mhead button{min-height:20px}
+.mhead .jump{font:var(--fs-xs) var(--mono);padding:0 6px}
+.mhead input{width:70px;font:var(--fs-xs) var(--mono);padding:1px 3px;min-height:20px}
+.mhead input.mlabel{flex:1;width:auto;min-width:50px;font:var(--fs-s) var(--font)}
+.mhead .mt{font:var(--fs-xs) var(--mono);color:var(--dim)}
+.mhead .mdel{margin-left:auto;padding:0 6px;color:var(--bad)}
+.mhead .mjp,.mhead .mjn{padding:0 6px}.mrow.cutrow .mhead .mdel{margin-left:0}
+.mrow textarea,.mrow input.mval{width:100%;padding:3px 5px}
+.mlab{display:block;font-size:var(--fs-xxs);color:var(--dim);margin-top:2px}
+.mnote{font-size:var(--fs-xs);margin-bottom:6px;line-height:1.5}
+.mwarn{font-size:var(--fs-xs);color:var(--warn);margin:2px 0 3px}.mwarn .malign{margin-top:3px;font-size:var(--fs-xs);padding:1px 8px}
+
+/* 左のアセット窓 */
+#assets{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;min-width:0}
+.atabs{display:flex;flex-wrap:wrap;gap:3px;padding:6px;border-bottom:1px solid var(--line);flex:none}
+.atabs button{font-size:var(--fs-xs);padding:1px 7px}
+.atabs .aclose{margin-left:auto}
+#assetBody{flex:1;min-height:0;overflow:auto;padding:6px}
+#assetPreview{flex:none;max-height:45%;overflow:auto;border-top:1px solid var(--line);padding:6px}
+#assetPreview:empty{display:none}
+#assetPreview textarea{width:100%}
+#assetPreview img,#assetPreview video{max-width:100%;max-height:150px;display:block;margin:0 auto 4px;border-radius:var(--r2)}
+.arow{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:var(--r1);cursor:pointer;font-size:var(--fs-s);border:1px solid transparent}
+.arow:hover{background:var(--hover)}.arow.on{border-color:var(--focus);background:var(--sel);color:var(--sel-fg)}
+.arow .txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.arow .txt small{color:var(--dim)}.arow.on .txt small,.arow.on .st,.arow.on .at{color:inherit;opacity:.8}
+.arow .st,.arow .at{font:var(--fs-xxs) var(--mono);color:var(--dim);white-space:nowrap}
+.arow .who{font-size:var(--fs-xs);border-left:3px solid var(--faint);padding-left:4px;white-space:nowrap}
+.arow .aplay{padding:0 6px;font-size:var(--fs-xxs);min-height:20px}
+/* エフェクトのタブ：3D の印・部品の置き場の見出し（2026-11-13、3D 強化） */
+.badge3d{display:inline-block;margin-left:4px;padding:0 4px;border:1px solid var(--info);border-radius:var(--r1);color:var(--info);font:600 var(--fs-xxs) var(--mono);vertical-align:1px}
+.arow.on .badge3d{color:inherit;border-color:currentColor}
+.libHead{margin:10px 2px 4px;padding-top:6px;border-top:1px solid var(--line);color:var(--dim);font-size:var(--fs-xs)}
+.libPack{margin:8px 2px 2px;color:var(--dim);font-size:var(--fs-xs);font-weight:600}
+/* キャラの名前の色（キャラ設定の色）：地がライトでもダークでも読めるよう、色は左の印にして、名前はふつうの字の色で出す */
+.cname{border-left:4px solid var(--cc,var(--faint));padding-left:5px;color:var(--strong)}
+.cimg{width:34px;height:34px;object-fit:cover;border-radius:50%;background:var(--sub-line);flex:none}
+.cbig{max-height:160px}
+.agrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.acell{cursor:pointer;font-size:var(--fs-xxs);color:var(--dim);text-align:center}
+.acell img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:var(--r1);display:block;background:var(--sub-line)}
+.acell span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linesHead{padding:2px 2px 6px}
+.ttsAllBtns{display:flex;flex-direction:column;gap:4px}
+.ttsAllBtn{width:100%}
+.ttsAllBtn.armed{background:var(--warn-bg);border-color:var(--warn);color:var(--text)}
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:4px}
+.pcell{cursor:pointer;font-size:var(--fs-xxs);color:var(--dim);border:1px solid var(--sub-line);border-radius:var(--r2);padding:3px;text-align:center}
+.pcell:hover{border-color:var(--focus)}.pcell.have{opacity:.6}
+.pcell img{width:100%;aspect-ratio:1;object-fit:cover;object-position:top;border-radius:var(--r1);display:block;background:var(--sub-line)}
+.pcell b{display:block;font-size:var(--fs-s);margin-top:2px}.pcell span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pnoimg{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--sub-line);border-radius:var(--r1)}
+
+/* ✂ カット編集の道具のバー（cutedit.js） */
+#cutbar{display:flex;align-items:center;gap:6px 10px;padding:4px 8px;background:var(--panel);border-top:1px solid var(--line);flex-wrap:wrap;font-size:var(--fs-s)}
+#cutbar .grp{display:flex;gap:3px;align-items:center}
+#cutbar .grp+.grp{padding-left:10px;border-left:1px solid var(--line)}
+#cutbar button{padding:0 8px;min-height:22px}
+#cutbar button:disabled{pointer-events:none}   /* 押せない理由は cutedit.js がバーの上のマウスの位置から出す（右の説明の欄とツールチップ） */
+#cutbar .hint.why{color:var(--warn)}
+#cutbar .hint{color:var(--dim);font-size:var(--fs-xs);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+body.tool-razor #laneList .clip{cursor:crosshair}
+body.tool-slip #laneList .clip{cursor:col-resize}
+
+/* タイムライン */
+#timeline{display:grid;grid-template-columns:var(--head) 1fr;border-top:1px solid var(--line);min-height:0;background:var(--bg)}
+#heads{background:var(--panel);border-right:1px solid var(--line);overflow:hidden}
+.rulerHead{height:var(--rulerH);border-bottom:1px solid var(--line);position:relative;z-index:1;background:var(--panel)}
+#headList{position:relative}
+.head{height:var(--trackH);border-bottom:1px solid var(--line);padding:4px 4px 4px 8px;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;cursor:default}
+.head:hover{background:var(--hover)}
+.head.meta{height:var(--metaH);gap:6px}
+.head .tk{--ic:14px}.head .tk .ic{vertical-align:-3px}
+/* トラックの頭のアイコンは、トラックの種類の色（--c-*。クリップの色）を字の色に半分まぜて、地の上で読める明るさに */
+.head .tk{--tkc:var(--text);color:color-mix(in srgb,var(--tkc) 60%,var(--text))}
+.head .tk.k-video,.head .tk.k-media{--tkc:var(--c-video)}.head .tk.k-effect{--tkc:var(--c-effect)}.head .tk.k-script{--tkc:var(--c-script)}.head .tk.k-tts{--tkc:var(--c-tts)}
+.head .tk.k-audio{--tkc:var(--c-audio)}.head .tk.k-subtitle{--tkc:var(--c-subtitle)}.head .tk.k-plan{--tkc:var(--c-plan)}
+.head .nm{font-weight:600;font-size:var(--fs-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.head .kd{font-size:var(--fs-xxs);color:var(--dim)}
+.head.meta .nm{font-weight:500;color:var(--dim)}
+.head.selt{background:var(--sel);color:var(--sel-fg);box-shadow:inset 3px 0 var(--accent)}
+.head.off .nm{opacity:.45;text-decoration:line-through}
+.head .hb{margin-left:auto;display:flex;align-items:center;gap:0;flex:none}
+.head .hb button,.head .mute{min-height:22px;min-width:22px;padding:0 3px;font-size:var(--fs-xs);background:transparent;border-color:transparent;color:inherit;--ic:14px}
+.head .hb button:hover{background:var(--hover)}
+.head .hb .shy{color:var(--faint);width:22px}.head .hb .shy.on{color:inherit}
+.head .hb .madd{font-size:var(--fs-s);line-height:14px;color:var(--ok);font-weight:700}
+.head.meta.addmeta{gap:3px;padding:2px 4px}.head.meta.addmeta button{font-size:var(--fs-xxs);padding:0 4px;min-height:20px}
+.addtr{display:flex;flex-wrap:nowrap;gap:1px;padding:2px;overflow:hidden;height:100%;align-items:center}
+.addtr button{flex:1;min-width:0;min-height:20px;padding:0 1px;font-size:var(--fs-xxs);overflow:hidden;--ic:13px}
+.addtr button .ic{vertical-align:-3px;margin-left:-1px}
+#lanesWrap{overflow:auto;position:relative}
+#lanes{position:relative;min-height:100%}
+#ruler{position:sticky;top:0;height:var(--rulerH);background:var(--panel);border-bottom:1px solid var(--line);z-index:3;cursor:ew-resize}
+#ruler .cbar{position:absolute;bottom:0;height:3px;background:var(--ok,#3fa66b);opacity:.85;pointer-events:none}
+.tick{position:absolute;top:0;height:100%;border-left:1px solid var(--line2);font:var(--fs-xxs) var(--mono);color:var(--dim);padding-left:4px;padding-top:7px}
+.tick.minor{height:30%;top:70%;padding:0;border-left-color:var(--line)}
+.lane{position:relative;height:var(--trackH);border-bottom:1px solid var(--line)}
+.lane.meta{height:var(--metaH);background:var(--lane-meta)}
+.lane.meta.addmeta{background:transparent}
+.lane.off .clip{opacity:.3;filter:grayscale(.7)}
+/* クリップ：種類の色（テーマで変えない）に白い字 */
+.clip{position:absolute;top:3px;bottom:3px;border-radius:var(--r2);overflow:hidden;font-size:var(--fs-xs);padding:2px 6px;color:var(--clip-fg);border:1px solid var(--clip-line);cursor:pointer;white-space:nowrap;text-overflow:ellipsis;background-color:var(--c-effect);background-size:auto 100%;background-repeat:repeat-x}
+.clip .lb{position:relative;z-index:1;text-shadow:0 1px 2px #000;background:var(--clip-label);padding:0 4px;border-radius:2px}
+.clip.image{background-color:var(--c-image)}.clip.video{background-color:var(--c-video)}.clip.script{background-color:var(--c-script)}
+.clip.keyframes{background-color:var(--c-keyframes);border-style:dashed}.clip.keyframes.done{border-style:solid}
+.clip.effect{background-color:var(--c-effect)}.clip.fx-light,.clip.fx-matte,.clip.fx-match,.clip.fx-grade{background-color:var(--c-fx-tone)}
+.clip.fx-stamp,.clip.fx-chibi,.clip.fx-illust{background-color:var(--c-fx-art)}
+.clip.fx-wipe,.clip.fx-flash_white,.clip.fx-shutter_flash,.clip.fx-tail_credits{background-color:var(--c-fx-cut)}
+.clip.fx-hearts,.clip.fx-clones,.clip.fx-bgglitch,.clip.fx-bg_beat,.clip.fx-edge_neon{background-color:var(--c-fx-glow)}
+.clip.tts{background-color:var(--c-tts)}.clip.tts.pending{background-color:var(--c-pending);border-style:dashed}
+.clip.audio{background-color:var(--c-audio)}.clip.subtitle{background-color:var(--c-subtitle)}
+.clip.plan{background-color:var(--c-plan);border-style:dashed}.clip.plan.done{border-style:solid;background-color:var(--c-plan-done)}
+.clip.thumb{background-size:auto 100%;background-repeat:no-repeat;background-position:left center}
+.clip .kf{position:absolute;top:0;bottom:0;width:40%;background-size:cover;background-position:center;opacity:.75}
+.clip .kf.a{left:0}.clip .kf.b{right:0}
+.clip .badge{position:absolute;right:4px;bottom:2px;z-index:1;font-size:var(--fs-xxs);background:rgba(0,0,0,.66);padding:0 4px;border-radius:2px}
+.clip.sel{outline:2px solid var(--accent);outline-offset:-1px;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.clip.msel{outline:2px solid color-mix(in srgb,var(--snap) 65%,transparent);outline-offset:-1px}
+/* セリフが同じトラックの次のセリフと重なっている（声の長さで伸びた。editor/ops.js の ttsOverlaps） */
+.clip.tts.overlap{box-shadow:inset -3px 0 0 var(--warn)}
+.clip .ovl{position:absolute;right:3px;top:1px;z-index:2;color:var(--warn);line-height:1}
+/* AI を追う：外で変わったクリップを数秒光らせる（消えたクリップは前の場所に枠だけ。editor/remote.js） */
+#laneList .aiflash{animation:aiflash .65s ease-in-out 4 alternate;box-shadow:0 0 0 2px var(--info),0 0 12px 2px color-mix(in srgb,var(--info) 70%,transparent)}
+.aigone{position:absolute;top:2px;bottom:2px;border:2px dashed var(--info);border-radius:3px;pointer-events:none;z-index:3}
+@keyframes aiflash{from{box-shadow:0 0 0 1px var(--info)}to{box-shadow:0 0 0 3px var(--info),0 0 16px 4px color-mix(in srgb,var(--info) 80%,transparent)}}
+.clip.off{opacity:.35}
+.clip.dragging{opacity:.75;outline:1px dashed var(--strong)}
+.clip .grip{position:absolute;top:0;bottom:0;width:6px;cursor:ew-resize;z-index:2}.clip .grip.l{left:0}.clip .grip.r{right:0}
+.clip:hover .grip{background:rgba(255,255,255,.16)}
+.clip .lnk,.clip .cgb{position:absolute;right:3px;top:1px;font-size:9px;z-index:1;opacity:.9;pointer-events:none;--ic:11px;line-height:11px}.clip .cgb.l2{right:16px}
+.clip .lnk .ic,.clip .cgb .ic{vertical-align:top;filter:drop-shadow(0 1px 1px #000)}
+.clip .wave{position:absolute;left:0;right:0;top:12px;bottom:0;background-repeat:no-repeat;opacity:.5;pointer-events:none}
+.clip .fade{position:absolute;top:0;bottom:0;pointer-events:none;background:rgba(0,0,0,.5)}
+.clip .fade.in{left:0;clip-path:polygon(0 0,100% 0,0 100%)}
+.clip .fade.out{right:0;clip-path:polygon(0 0,100% 0,100% 100%)}
+.clip .fh{position:absolute;top:0;width:9px;height:9px;margin:0 -4px;background:#fff;border:1px solid #000;border-radius:50%;cursor:ew-resize;z-index:3;opacity:0}
+.clip:hover .fh,.clip.sel .fh{opacity:.9}
+.clip .spd{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+.clip .spd line{stroke:rgba(255,255,255,.34);stroke-width:1;stroke-dasharray:2 3;vector-effect:non-scaling-stroke}
+.clip .spd polyline{fill:none;stroke:var(--snap);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.clip .spdb{position:absolute;right:2px;bottom:1px;font-size:var(--fs-xxs);line-height:13px;background:rgba(0,0,0,.66);color:var(--snap);padding:0 3px;border-radius:var(--r1);pointer-events:none;white-space:nowrap}
+/* メタデータの段（拍・歌詞・ト書き・カット…） */
+.beat{position:absolute;top:0;bottom:0;border-left:1px solid var(--beat)}.beat.down{border-left:2px solid var(--beat-down)}
+.item{position:absolute;top:3px;bottom:3px;background:var(--m-item);border-radius:var(--r1);font-size:var(--fs-xs);padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--m-fg);line-height:20px}
+.item.lyrics{background:var(--m-lyrics)}.item.dialogue{background:var(--m-dialogue)}.item.notes{background:var(--m-notes)}.item.detect{background:var(--m-detect)}
+.item.cuts{background:var(--m-cuts)}.item.sections{background:var(--m-sections)}
+.item.ed{cursor:grab;padding-left:7px}
+.item .grip{position:absolute;top:0;bottom:0;width:6px;cursor:ew-resize;z-index:2}.item .grip.l{left:0}.item .grip.r{right:0}
+.item.cuts.ed{cursor:pointer}.item.cuts .grip{background:rgba(255,255,255,.08)}.item.cuts .grip:hover{background:color-mix(in srgb,var(--snap) 40%,transparent)}
+.item.sel{outline:2px solid var(--accent);outline-offset:-1px;z-index:2}
+.item.dragging{opacity:.75;outline:1px dashed var(--strong)}
+.item.warn{box-shadow:inset 0 -2px #ffb74d}
+.mhint{position:absolute;left:6px;top:7px;font-size:var(--fs-xs);color:var(--dim);white-space:nowrap;pointer-events:none}
+/* 再生位置・スナップの線・囲んで選ぶ・動画の外 */
+#playhead{position:absolute;top:0;bottom:0;width:0;border-left:2px solid var(--accent);z-index:4;pointer-events:none}
+#playhead::before{content:"";position:absolute;top:0;left:-7px;border:6px solid transparent;border-top:9px solid var(--accent)}
+#snapLine{position:absolute;top:0;bottom:0;width:0;border-left:1px solid var(--snap);box-shadow:0 0 4px var(--snap);z-index:5;pointer-events:none;display:none}
+#marq{position:absolute;border:1px dashed var(--focus);background:color-mix(in srgb,var(--focus) 14%,transparent);z-index:30;pointer-events:none}
+#endZone{position:absolute;top:0;bottom:0;z-index:1;pointer-events:none;border-left:2px solid color-mix(in srgb,var(--accent) 60%,transparent);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--text) 5%,transparent) 0 6px,color-mix(in srgb,var(--text) 12%,transparent) 6px 12px)}
+
+/* コードの窓（VS Code の外で「コードを開く」） */
+#codePanel{position:fixed;inset:6% 8%;background:var(--raised);border:1px solid var(--line2);border-radius:var(--r3);display:flex;flex-direction:column;z-index:20;box-shadow:0 10px 40px var(--shadow);overflow:hidden}
+.codeBar{display:flex;gap:8px;align-items:center;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line)}
+#codeText{flex:1;background:var(--bg);color:var(--text);border:0;border-radius:0;padding:10px 14px;font:var(--fs-s)/1.5 var(--mono);resize:none;tab-size:4}
+
+/* 書き出しの窓（ふつう・🏆 マスター共通）：見出し／基本の行（左に項目名）／詳細設定（たたむ）／下のボタン。長い説明は title（ツールチップ）だけ */
+#exportPanel{position:fixed;top:44px;right:12px;width:520px;max-width:calc(100vw - 24px);max-height:84vh;overflow:auto;background:var(--raised);color:var(--text);border:1px solid var(--line2);border-radius:var(--r3);z-index:21;box-shadow:0 14px 44px var(--shadow);font-size:var(--fs-s)}
+.xhead{position:sticky;top:0;z-index:1;display:flex;gap:8px;align-items:center;padding:10px 12px 9px 16px;background:var(--raised);border-bottom:1px solid var(--line)}
+.xhead b{font-size:14px;font-weight:600;color:var(--strong)}
+.xbody{padding:12px 16px 6px}
+.xline{display:grid;grid-template-columns:66px 1fr;gap:10px;align-items:start;margin:0 0 10px}
+.xk{color:var(--dim);padding-top:4px;white-space:nowrap}
+.xv{min-width:0}
+.xv input[type=number],.xv input[type=text],.xv select{width:100%;font-family:var(--mono)}
+.xrow{display:flex;gap:6px;align-items:center}.xrow input{flex:1;min-width:0}
+.xmut{color:var(--dim);font-size:var(--fs-xs)}
+.xchoice{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.xchoice label{position:relative;display:flex;flex-direction:column;gap:1px;padding:7px 6px 7px 25px;border:1px solid var(--line2);border-radius:var(--r2);background:var(--sub);cursor:pointer;min-width:0}
+.xchoice label:hover{border-color:var(--dim)}
+.xchoice input{position:absolute;left:7px;top:9px;margin:0}
+.xchoice label:has(input:checked),.xseg label:has(input:checked){border-color:var(--focus);background:var(--sel);color:var(--sel-fg)}
+.xchoice label:has(input:checked) b,.xchoice label:has(input:checked) small:not(.warn){color:inherit}
+.xchoice b{font-weight:600;color:var(--text);font-size:var(--fs-s);white-space:nowrap}
+.xchoice small{color:var(--dim);font-size:10.5px;line-height:1.35}
+.xchoice small.warn,.xnote,summary.warn{color:var(--warn)}
+.xnote{font-size:var(--fs-xs);margin-top:6px;display:flex;flex-direction:column;gap:2px}.xnote:empty{display:none}.xnote span{cursor:help}
+.xseg{display:inline-flex;border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden}
+.xseg label{display:flex;gap:5px;align-items:center;padding:3px 12px 3px 8px;cursor:pointer;color:var(--text)}
+.xseg label+label{border-left:1px solid var(--line2)}
+.xseg input{margin:0}
+.xcheck{display:flex;gap:6px;align-items:flex-start;color:var(--text);cursor:pointer;line-height:1.45}.xcheck input{margin:2px 0 0}
+.xsum{margin:12px 0 4px;padding:9px 0 0;border-top:1px solid var(--line)}.xsum .xline{margin:0}
+.xsum #xOut{color:var(--strong);font-weight:600;margin-right:10px}
+.xadv{margin:4px 0 6px}.xadv summary{color:var(--dim);padding:4px 0;user-select:none}.xadv summary:hover{color:var(--text)}
+.xadvbody{padding:8px 0 2px}
+.xfoot{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:10px 16px;background:var(--sub);border-top:1px solid var(--line)}
+.xfoot button{padding:3px 14px}.xfoot .sp{flex:1}
+.xfile{font:var(--fs-s) var(--mono);color:var(--dim);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xstate{display:flex;align-items:baseline;justify-content:space-between;font-size:14px;font-weight:600;margin:2px 0}.xpct{font:600 18px var(--mono);color:var(--strong)}
+.xprog{height:6px;background:var(--sub-line);border-radius:3px;overflow:hidden;margin:6px 0 5px}.xprog i{display:block;height:100%;background:var(--btn);transition:width .5s}
+.xprog.ind i{width:35%!important;animation:xind 1.4s ease-in-out infinite}
+@keyframes xind{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
+@media (prefers-reduced-motion:reduce){.xprog i{transition:none}.xprog.ind i{animation:none;width:100%!important;opacity:.5}}
+.xsteps{display:flex;gap:4px;margin:12px 0 8px;padding:0;list-style:none;font-size:10.5px}
+.xsteps li{flex:1;padding-top:5px;text-align:center;border-top:3px solid var(--sub-line);color:var(--faint)}
+.xsteps li.done{border-color:color-mix(in srgb,var(--btn) 55%,var(--sub-line));color:var(--dim)}.xsteps li.on{border-color:var(--btn);color:var(--strong);font-weight:600}
+.xinfo{margin:6px 0 4px;cursor:default}
+.xmsg{margin:2px 0 8px;line-height:1.5}.xmsg b{font-size:var(--fs);display:block;margin-bottom:2px}
+.xmsg.ok b{color:var(--ok)}.xmsg.bad b{color:var(--bad)}.xmsg div{color:var(--text)}
+.xres{margin:4px 0 8px;padding:7px 9px;border:1px solid color-mix(in srgb,var(--ok) 45%,var(--line2));border-radius:var(--r2);background:var(--ok-bg)}.xpath{font:var(--fs-s) var(--mono);color:var(--strong);word-break:break-all}
+.xdet{margin:6px 0}.xdet summary{color:var(--dim);font-size:var(--fs-xs)}.xdet summary:hover{color:var(--text)}
+.xlist{margin:6px 0 2px;padding-left:18px}.xlist li{margin:2px 0}.xlist .xmut{margin-left:8px}
+.xcopy{float:right;margin:2px 0 0 6px;font-size:var(--fs-xs)}
+.xerr{user-select:text;-webkit-user-select:text;cursor:text;clear:both;color:var(--bad);font-size:var(--fs-xs);white-space:pre-wrap;word-break:break-all;margin:6px 0 0;max-height:220px;overflow:auto;background:var(--bad-bg);padding:6px;border-radius:var(--r2)}
+
+/* ✏️ 書き込み（annotate.js）：プレビューの上に重なる帯。絵の上なので、テーマに関係なく濃い地に白い字 */
+#annotCv{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none;z-index:5}
+#annotBar{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;background:rgba(29,31,37,.94);color:#e6e6e6;border:1px solid #4a4e58;border-radius:var(--r2);padding:6px 8px;display:flex;flex-direction:column;gap:6px;color-scheme:dark}
+#annotBar button{background:#343842;color:#e6e6e6;border-color:#4a4e58}#annotBar button:hover{background:#414652}
+#annotBar button.primary{background:var(--btn);color:var(--btn-fg);border-color:transparent}
+#annotBar .atools{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+#annotBar .atools button{min-width:30px;height:26px}
+#annotBar .atools button.on{outline:2px solid var(--snap);outline-offset:0}
+#annotBar .sw{width:22px;min-width:22px!important;border-radius:50%;border:1px solid rgba(0,0,0,.5)}
+#annotBar .sep{width:10px}
+#annotBar .ainfo{margin-left:auto;font:var(--fs-xs) var(--mono);color:#a5a9b3}
+#annotBar .abtns{display:flex;align-items:center;gap:6px}
+#annotBar .abtns .sp{flex:1}
+#annotBar .ahint{font-size:var(--fs-xs);color:#a5a9b3}
+#stage.annot{padding-bottom:96px}
+/* ✏️ 渡した画面の縮小（プレビューの右下） */
+#annotPips{position:absolute;right:10px;bottom:50px;z-index:4;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none}
+#stage.annot #annotPips{display:none}
+#annotPips .pip{position:relative;width:200px;background:var(--raised);border:1px solid var(--line2);border-radius:var(--r2);padding:4px;pointer-events:auto;box-shadow:0 2px 8px var(--shadow)}
+#annotPips .pip img{display:block;width:100%;border-radius:var(--r1);cursor:pointer}
+#annotPips .pipx{position:absolute;top:2px;right:2px;min-width:0;min-height:0;width:22px;height:22px;padding:0;font-size:var(--fs-xs);line-height:20px;background:rgba(0,0,0,.66);color:#fff;border:0;border-radius:50%}
+#annotPips .pipcap{font-size:var(--fs-xs);color:var(--dim);margin-top:3px}
+#annotPips .pipcap .ok{color:var(--ok)}
+#annotPips .pipcap .wait{color:var(--warn)}

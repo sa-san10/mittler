@@ -1,0 +1,9 @@
+# Mittler の描画（Python エンジン pyengine/mittler と effects）に要るもの。
+# 作者の PC（Python 3.14.3 と 3.12.10）で動いている版（2026-10-23 の pip freeze）。
+#   <venv>\Scripts\python.exe -m pip install -r setup\requirements-engine.txt
+# 版が手に入らなければ、== を外して新しい版で入れてよい（numpy・opencv・Pillow・onnxruntime の4つが入っていれば動く）。
+numpy==2.5.4
+opencv-python-headless==5.0.0.93
+pillow==12.3.0
+# 人物のマスク（U²-Net の onnx を直接。作品のエフェクトが使うとき）。描画だけなら無くてもよい
+onnxruntime==1.31.0

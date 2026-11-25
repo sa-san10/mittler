@@ -1,0 +1,46 @@
+name: smoke
+
+# Checks that need no browser, no GPU and no media files.
+# The rest of tools/smoke_*.py start a local server or a headless browser; run those locally (see CONTRIBUTING.md).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Standard library only
+      - name: Text hygiene (control characters, BOM, encoding)
+        run: |
+          python -X utf8 tools/smoke_text.py --self-test
+          python -X utf8 tools/smoke_text.py
+      - name: Docs (links, file names, setting names, section numbers)
+        run: python -X utf8 tools/smoke_docs.py
+      - name: Icons
+        run: python -X utf8 tools/smoke_icons.py
+      - name: Setup checker (fake home, dry run)
+        run: python -X utf8 tools/smoke_setup.py
+      - name: Image engines against a local fake server (nothing is sent outside)
+        run: |
+          python -X utf8 tools/smoke_gemini_image.py
+          python -X utf8 tools/smoke_openai_image.py
+      - name: Build the VSIX
+        run: python -X utf8 tools/build_vsix.py
+
+      # Needs the rendering packages (numpy, OpenCV, Pillow) and Node (preinstalled on the runner)
+      - name: Install rendering packages
+        run: python -m pip install --only-binary=:all: -r setup/requirements-engine.txt
+      - name: Same math in Python and JavaScript
+        run: python -X utf8 tools/smoke_same.py

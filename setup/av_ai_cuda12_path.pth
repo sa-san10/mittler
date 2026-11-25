@@ -1,0 +1,1 @@
+import os, sys; _d = os.path.join(sys.prefix, 'Lib', 'site-packages', 'nvidia'); os.environ['PATH'] = os.pathsep.join([os.path.join(_d, x, 'bin') for x in ('cublas', 'cudnn', 'cuda_nvrtc') if os.path.isdir(os.path.join(_d, x, 'bin'))] + [os.environ.get('PATH', '')])

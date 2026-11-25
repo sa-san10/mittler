@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Mittler</title>
+<link rel="stylesheet" href="editor.css"></head>
+<body>
+<!-- 画面の言葉は editor/i18n/en.json・ja.json（data-i18n＝文字・data-i18n-title・-ph・-aria の鍵。editor/i18n.js が入れる。英語と日本語を上のバーの #langSel で切り替える） -->
+<header id="bar">
+  <!-- ボタンのアイコン（.ic。Lucide の線のアイコン、editor/icons）。名前（.lb）は幅が狭いとたたむ（.opt は先にたたむ）（editor.css・ui.js） -->
+  <button id="assetToggle" class="ib" data-i18n-title="bar.assets.tip" hidden><i class="ic" data-ic="folder" aria-hidden="true"></i><span class="lb opt" data-i18n="bar.assets"></span></button>
+  <span id="file" class="file">…</span>
+  <button id="newProjBtn" data-i18n-title="bar.new.tip" data-i18n="bar.new"></button>
+  <span class="gap"></span>
+  <span class="durWrap"><button id="durBtn" data-i18n-title="bar.dur.tip"><i class="ic" data-ic="timer" aria-hidden="true"></i></button><div id="durMenu" hidden></div></span>
+  <span class="sizeWrap"><button id="sizeBtn" data-i18n-title="bar.size.tip"><i class="ic" data-ic="ratio" aria-hidden="true"></i></button><div id="sizeMenu" hidden></div></span>
+  <span class="gap"></span>
+  <button id="stillBtn" class="ib" data-i18n-title="bar.still.tip"><i class="ic" data-ic="camera" aria-hidden="true"></i><span class="lb">PNG</span></button>
+  <button id="reloadBtn" class="ib" data-i18n-title="bar.reload.tip"><i class="ic" data-ic="refresh-cw" aria-hidden="true"></i><span class="lb opt" data-i18n="bar.reload"></span></button>
+  <button id="undo" class="ib" data-i18n-title="bar.undo.tip"><i class="ic" data-ic="undo-2" aria-hidden="true"></i><span class="lb opt" data-i18n="bar.undo"></span></button><button id="redo" class="ib" data-i18n-title="bar.redo.tip"><i class="ic" data-ic="redo-2" aria-hidden="true"></i><span class="lb opt" data-i18n="bar.redo"></span></button>
+  <span class="sp"></span>
+  <span id="status" class="status" role="status" aria-live="polite"></span>
+  <span class="snapWrap"><button id="snapBtn" class="ib"><i class="ic" data-ic="magnet" aria-hidden="true"></i><span class="lb opt" data-i18n="bar.snap"></span></button><button id="snapMenuBtn" data-i18n-title="bar.snapMenu" data-i18n-aria="bar.snapMenu"><i class="ic" data-ic="chevron-down" aria-hidden="true"></i></button>
+    <div id="snapMenu" hidden></div></span>
+  <button id="shyBtn" class="ib" data-i18n-title="bar.shy.tip"><i class="ic" data-ic="ghost" aria-hidden="true"></i></button>
+  <button id="followBtn" class="ib" aria-pressed="true"><i class="ic" data-ic="mouse-pointer-2" aria-hidden="true"></i><span class="lb opt" data-i18n="bar.follow"></span></button>
+  <span class="gap"></span>
+  <button id="fit" data-i18n-title="bar.fit.tip" data-i18n="bar.fit"></button>
+  <label class="zoom"><span data-i18n="bar.zoom"></span> <input id="zoom" type="range" min="0" max="6" step="0.01" value="3.7"></label>
+  <span id="langSel" class="langSel" role="group" data-i18n-title="bar.lang.tip" data-i18n-aria="bar.lang.tip"></span>
+</header>
+<main id="top">
+  <aside id="assets"><div id="assetTabs" class="atabs"></div><div id="assetBody"></div><div id="assetPreview"></div></aside>
+  <section id="stage"><div id="screen">
+    <video id="proxy" preload="auto" playsinline hidden></video>
+    <img id="frameImg" alt="" hidden>
+    <canvas id="gradeCv" hidden></canvas>
+    <video id="takeView" playsinline hidden></video>
+    <div id="srcTag" class="srcTag"></div>
+    <div id="renderErr" class="renderErr" role="alert" hidden><div class="reHead"><b id="reTitle"></b><span class="reBtns"><button id="reCopy" type="button" data-i18n="re.copy"></button><button id="reClose" type="button" data-i18n="re.close"></button></span></div><div id="reNote" class="reNote" data-i18n="re.note"></div><pre id="reText" class="reText"></pre></div>
+  </div>
+  <div id="transport" data-i18n-title="tp.wheel">
+    <span class="tpl"><span id="time" class="time">0:00.000</span><span id="frame" class="frame">f0</span></span>
+    <span class="tpc"><button id="toStart" data-i18n-title="tp.start"><i class="ic" data-ic="skip-back" aria-hidden="true"></i></button><button id="stepBack" data-i18n-title="tp.back"><i class="ic" data-ic="step-back" aria-hidden="true"></i></button><button id="play" data-i18n-title="tp.play"><i class="ic" data-ic="play" aria-hidden="true"></i></button><button id="stepFwd" data-i18n-title="tp.fwd"><i class="ic" data-ic="step-forward" aria-hidden="true"></i></button><button id="toEnd" data-i18n-title="tp.end"><i class="ic" data-ic="skip-forward" aria-hidden="true"></i></button></span>
+    <span class="tpr"><label class="pvScale" data-i18n-title="tp.pvScale.tip"><span data-i18n="tp.pvScale"></span> <select id="pvScale"><option value="1" data-i18n="tp.pvScale.full"></option><option value="0.5">1/2</option><option value="0.25">1/4</option></select></label><button id="bakeBtn" class="bakeBtn"><i class="ic" data-ic="hourglass" aria-hidden="true"></i><span id="bakeTxt"></span></button><span id="cutNow" class="cutNow"></span></span>
+  </div></section>
+  <aside id="inspector">
+    <div id="paneTabs" class="ptabs"><button data-p="sel" data-i18n="pane.clip"></button><button data-p="grade" data-i18n="pane.color"></button><button data-p="meta" data-i18n="pane.meta"></button></div>
+    <section class="pane" data-p="sel"><div id="sel" class="empty"></div></section>
+    <section class="pane" data-p="grade" hidden><div id="gradePanel"></div></section>
+    <section class="pane" data-p="meta" hidden><div id="metaTabs" class="tabs"></div><div id="metaBody"></div></section>
+  </aside>
+</main>
+<div id="cutbar"></div>
+<section id="timeline">
+  <div id="heads"><div class="rulerHead"></div><div id="headList"></div></div>
+  <div id="lanesWrap"><div id="lanes"><div id="ruler"></div><div id="laneList"></div><div id="playhead"></div><div id="snapLine"></div><div id="marq" hidden></div><div id="endZone" data-i18n-title="tl.endZone" hidden></div></div></div>
+</section>
+<div id="codePanel" hidden><div class="codeBar"><b id="codeName"></b><span class="sp"></span><button id="codeSave" data-i18n="code.save"></button><button id="codeClose" data-i18n="code.close"></button></div><textarea id="codeText" spellcheck="false"></textarea></div>
+<script src="i18n.js"></script>
+<script src="ui.js"></script>
+<script src="calc.js"></script>
+<script src="ops.js"></script>
+<script src="editor.js"></script>
+<script src="cutmeta.js"></script>
+<script src="cutedit.js"></script>
+<script src="media.js"></script>
+<script src="assets.js"></script>
+<script src="plan.js"></script>
+<script src="cacheplay.js"></script>
+<script src="warp.js"></script>
+<script src="annotate.js"></script>
+<script src="state.js"></script>
+<script src="export.js"></script>
+<script src="analyze.js"></script>
+<script src="music.js"></script>
+<script src="newproject.js"></script>
+<script src="remote.js"></script>
+</body></html>

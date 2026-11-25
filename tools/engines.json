@@ -1,0 +1,11 @@
+{
+ "_": "🎬 生成のエンジン → アダプタの対応表（ここが1か所）。ジョブの engine（動画は video.engine、絵は image.engine。絵は書いていなければ default.image）から、そのエンジンの決まりを持つアダプタ（tools/<adapter>.py）を引く。サーバー（server/server.js）はジョブを作るときに python tools/<adapter>.py build を呼び、ジョブ係（tools/jobs.py）は <adapter>.submit・poll を呼ぶ。エンジンの足し方は docs/H3受け渡し契約.md の「エンジンを足すには」。絵の max_refs は参照画像の上限（編集画面のチップ）。絵の既定は PC の設定 mittler.image.engine が先",
+ "engines": {
+  "h3-fl2va": {"kind": "video", "adapter": "h3_jobs"},
+  "h3-ref2va": {"kind": "video", "adapter": "h3_jobs"},
+  "codex": {"kind": "image", "adapter": "codex_jobs", "max_refs": 5},
+  "openai": {"kind": "image", "adapter": "openai_image_jobs", "max_refs": 16},
+  "nanobanana": {"kind": "image", "adapter": "gemini_image_jobs", "max_refs": 14}
+ },
+ "default": {"video": "h3-fl2va", "image": "codex"}
+}

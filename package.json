@@ -1,0 +1,105 @@
+{
+  "name": "mittler",
+  "displayName": "Mittler",
+  "description": "%description%",
+  "version": "0.9.0",
+  "preview": true,
+  "publisher": "sa-san10",
+  "author": "sa-san10",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "repository": { "type": "git", "url": "https://github.com/sa-san10/mittler" },
+  "homepage": "https://github.com/sa-san10/mittler#readme",
+  "bugs": { "url": "https://github.com/sa-san10/mittler/issues" },
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Other"],
+  "main": "./extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "%untrusted.description%"
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "mittler.timeline",
+        "displayName": "%editor.displayName%",
+        "selector": [{ "filenamePattern": "*.cut.json" }],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      { "command": "mittler.openInBrowserUrl", "title": "%command.openInBrowserUrl%" },
+      { "command": "mittler.reopenAsText", "title": "%command.reopenAsText%" },
+      { "command": "mittler.newProject", "title": "%command.newProject%" },
+      { "command": "mittler.setup", "title": "%command.setup%" }
+    ],
+    "menus": {
+      "file/newFile": [
+        { "command": "mittler.newProject", "group": "file" }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "explorer",
+        "contents": "%welcome.explorer%",
+        "when": "workbenchState == empty"
+      }
+    ],
+    "configuration": {
+      "title": "Mittler",
+      "properties": {
+        "mittler.language": {
+          "type": "string",
+          "enum": ["en", "ja"],
+          "enumDescriptions": ["English", "日本語"],
+          "default": "en",
+          "description": "%config.language.description%"
+        },
+        "mittler.render.python": { "type": "string", "default": "", "description": "%config.render.python.description%" },
+        "mittler.render.ffmpegDir": { "type": "string", "default": "", "description": "%config.render.ffmpegDir.description%" },
+        "mittler.analysis.python": { "type": "string", "default": "", "description": "%config.analysis.python.description%" },
+        "mittler.analysis.modelsDir": { "type": "string", "default": "", "description": "%config.analysis.modelsDir.description%" },
+        "mittler.voicevox.url": { "type": "string", "default": "", "description": "%config.voicevox.url.description%" },
+        "mittler.presetsDir": { "type": "string", "default": "", "description": "%config.presetsDir.description%" },
+        "mittler.codex.path": { "type": "string", "default": "", "description": "%config.codex.path.description%" },
+        "mittler.codex.model": { "type": "string", "default": "", "description": "%config.codex.model.description%" },
+        "mittler.image.engine": { "type": "string", "enum": ["", "codex", "openai", "nanobanana"], "enumDescriptions": ["%config.image.engine.default%", "Codex CLI", "OpenAI Image API (GPT Image)", "Nano Banana (Gemini API)"], "default": "", "description": "%config.image.engine.description%" },
+        "mittler.openai.imageModel": { "type": "string", "default": "", "examples": ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gpt-image-1.5", "gpt-image-1-mini"], "description": "%config.openai.imageModel.description%" },
+        "mittler.gemini.imageModel": { "type": "string", "default": "", "examples": ["gemini-3-pro-image", "gemini-nano-banana-2.1", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image", "gemini-2.5-flash-image"], "description": "%config.gemini.imageModel.description%" },
+        "mittler.gemini.imageSize": { "type": "string", "enum": ["", "1K", "2K", "4K"], "default": "", "description": "%config.gemini.imageSize.description%" },
+        "mittler.openai.imageQuality": { "type": "string", "enum": ["", "auto", "low", "medium", "high", "xhigh", "max"], "default": "", "description": "%config.openai.imageQuality.description%" },
+        "mittler.tools.python": { "type": "string", "default": "", "description": "%config.tools.python.description%" },
+        "mittler.blender.path": { "type": "string", "default": "", "description": "%config.blender.path.description%" },
+        "mittler.cache.dir": { "type": "string", "default": "", "description": "%config.cache.dir.description%" },
+        "mittler.bake.jobs": { "type": ["number", "null"], "default": null, "description": "%config.bake.jobs.description%" },
+        "mittler.master.esrgan": { "type": "string", "default": "", "description": "%config.master.esrgan.description%" },
+        "mittler.master.esrganModel": { "type": "string", "default": "", "description": "%config.master.esrganModel.description%" },
+        "mittler.master.rife": { "type": "string", "default": "", "description": "%config.master.rife.description%" },
+        "mittler.master.scale": { "type": ["number", "null"], "default": null, "description": "%config.master.scale.description%" },
+        "mittler.master.fps": { "type": ["number", "null"], "default": null, "description": "%config.master.fps.description%" },
+        "mittler.master.outHeight": { "type": ["number", "null"], "default": null, "description": "%config.master.outHeight.description%" },
+        "mittler.master.cacheGb": { "type": ["number", "null"], "default": null, "description": "%config.master.cacheGb.description%" },
+        "claudeCut.render.python": { "type": "string", "default": "", "description": "%config.old.render.python.description%", "deprecationMessage": "%config.old.render.python.deprecation%" },
+        "claudeCut.render.ffmpegDir": { "type": "string", "default": "", "description": "%config.old.render.ffmpegDir.description%", "deprecationMessage": "%config.old.render.ffmpegDir.deprecation%" },
+        "claudeCut.analysis.python": { "type": "string", "default": "", "description": "%config.old.analysis.python.description%", "deprecationMessage": "%config.old.analysis.python.deprecation%" },
+        "claudeCut.analysis.modelsDir": { "type": "string", "default": "", "description": "%config.old.analysis.modelsDir.description%", "deprecationMessage": "%config.old.analysis.modelsDir.deprecation%" },
+        "claudeCut.voicevox.url": { "type": "string", "default": "", "description": "%config.old.voicevox.url.description%", "deprecationMessage": "%config.old.voicevox.url.deprecation%" },
+        "claudeCut.presetsDir": { "type": "string", "default": "", "description": "%config.old.presetsDir.description%", "deprecationMessage": "%config.old.presetsDir.deprecation%" },
+        "claudeCut.codex.path": { "type": "string", "default": "", "description": "%config.old.codex.path.description%", "deprecationMessage": "%config.old.codex.path.deprecation%" },
+        "claudeCut.codex.model": { "type": "string", "default": "", "description": "%config.old.codex.model.description%", "deprecationMessage": "%config.old.codex.model.deprecation%" },
+        "claudeCut.tools.python": { "type": "string", "default": "", "description": "%config.old.tools.python.description%", "deprecationMessage": "%config.old.tools.python.deprecation%" },
+        "claudeCut.master.esrgan": { "type": "string", "default": "", "description": "%config.old.master.esrgan.description%", "deprecationMessage": "%config.old.master.esrgan.deprecation%" },
+        "claudeCut.master.esrganModel": { "type": "string", "default": "", "description": "%config.old.master.esrganModel.description%", "deprecationMessage": "%config.old.master.esrganModel.deprecation%" },
+        "claudeCut.master.rife": { "type": "string", "default": "", "description": "%config.old.master.rife.description%", "deprecationMessage": "%config.old.master.rife.deprecation%" },
+        "claudeCut.master.scale": { "type": ["number", "null"], "default": null, "description": "%config.old.master.scale.description%", "deprecationMessage": "%config.old.master.scale.deprecation%" },
+        "claudeCut.master.fps": { "type": ["number", "null"], "default": null, "description": "%config.old.master.fps.description%", "deprecationMessage": "%config.old.master.fps.deprecation%" },
+        "claudeCut.master.outHeight": { "type": ["number", "null"], "default": null, "description": "%config.old.master.outHeight.description%", "deprecationMessage": "%config.old.master.outHeight.deprecation%" },
+        "claudeCut.master.cacheGb": { "type": ["number", "null"], "default": null, "description": "%config.old.master.cacheGb.description%", "deprecationMessage": "%config.old.master.cacheGb.deprecation%" }
+      }
+    }
+  }
+}

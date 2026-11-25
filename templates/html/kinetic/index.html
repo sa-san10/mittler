@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- Mittler の HTML のレイヤーのひな形：文字の動き（Canvas 2D）。字が下から 1 字ずつ跳ねて出て、光り、終わりに消える。
+     args：text（字）・color（字の色）・accent（光・線の色）・size（字の高さ。画面の高さに対する割合）・font（書体の名前）・stagger（1 字ずつのずれ 秒）
+     絵は t（クリップの頭からの秒）だけで決める。背景は透明。書き方は Mittler の docs/エフェクトの書き方.md の「HTML のレイヤー」 -->
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c"></canvas>
+<script>
+const cv = document.getElementById('c'), g = cv.getContext('2d');
+// 書体は最初のコマより前に読み込む（読まないと、最初のコマだけ代わりの書体で描かれて字体がカクッと変わる。@font-face の書体は下地が読むが、念のため使う字で）
+const FONT = a => `900 64px ${a.font ?? '"Noto Sans JP", "Yu Gothic UI", "Segoe UI", sans-serif'}`;
+if (document.fonts) mittler.ready(document.fonts.load(FONT(mittler.args), String(mittler.args.text ?? 'Mittler')).catch(() => null));
+cv.width = mittler.W; cv.height = mittler.H;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const backOut = (p, s = 1.70158) => { p = clamp(p) - 1; return p * p * ((s + 1) * p + s) + 1; };
+const smooth = p => { p = clamp(p); return p * p * (3 - 2 * p); };
+
+mittler.onFrame((t, a) => {
+  const W = mittler.W, H = mittler.H, text = String(a.text ?? 'Mittler'), dur = mittler.dur || 4;
+  const size = H * (a.size ?? 0.18), stagger = a.stagger ?? 0.06, color = a.color ?? '#ffffff', accent = a.accent ?? '#ffb347';
+  g.clearRect(0, 0, W, H);
+  g.font = `900 ${size}px ${a.font ?? '"Noto Sans JP", "Yu Gothic UI", "Segoe UI", sans-serif'}`;
+  g.textBaseline = 'alphabetic';
+  const chars = [...text], widths = chars.map(c => g.measureText(c).width), total = widths.reduce((x, y) => x + y, 0);
+  const out = smooth((t - (dur - 0.6)) / 0.6);       // 終わりの 0.6 秒で消える
+  let x = (W - total) / 2; const y = H / 2 + size * 0.35;
+  chars.forEach((c, i) => {
+    const p = (t - i * stagger) / 0.7;                // 1 字ずつ、0.7 秒で出る
+    if (p <= 0) { x += widths[i]; return; }
+    const e = backOut(p, 2.2), alpha = clamp(p * 3) * (1 - out);
+    g.save();
+    g.translate(x + widths[i] / 2, y + (1 - e) * size * 0.9 - out * size * 0.3);
+    g.rotate((1 - e) * 0.35 * (i % 2 ? 1 : -1));
+    g.globalAlpha = alpha;
+    g.shadowColor = accent; g.shadowBlur = size * (0.15 + 0.25 * Math.max(0, 1 - Math.abs(p - 1) * 2));  // 出たところで強く光る
+    g.fillStyle = color; g.textAlign = 'center';
+    g.fillText(c, 0, 0);
+    g.restore();
+    x += widths[i];
+  });
+  // 字の下の線（左から伸びて、終わりに右へ抜ける）
+  const lp = smooth((t - chars.length * stagger - 0.2) / 0.6);
+  if (lp > 0) {
+    const w = total * lp, x0 = (W - total) / 2 + total * out;
+    g.save(); g.globalAlpha = 1 - out; g.shadowColor = accent; g.shadowBlur = size * 0.2;
+    g.fillStyle = accent; g.fillRect(x0, y + size * 0.18, Math.max(0, w - total * out), Math.max(2, size * 0.04));
+    g.restore();
+  }
+});
+</script></body></html>

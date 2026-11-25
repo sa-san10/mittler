@@ -1,0 +1,66 @@
+{
+ "format": "mittler/py1",
+ "engine": "mittler",
+ "name": "新しい作品",
+ "width": 1920,
+ "height": 1080,
+ "fps": 30,
+ "duration": 60,
+ "root": ".",
+ "characters": "characters.json",
+ "preview": {},
+ "settings": {
+  "audio": {
+   "peak": 0.97
+  },
+  "subtitle": {}
+ },
+ "tracks": [
+  {
+   "id": "t_sub_0",
+   "name": "字幕",
+   "kind": "subtitle",
+   "clips": []
+  },
+  {
+   "id": "t_video_0",
+   "name": "映像",
+   "kind": "video",
+   "clips": []
+  },
+  {
+   "id": "t_plan_0",
+   "name": "動画化予定",
+   "kind": "plan",
+   "clips": []
+  },
+  {
+   "id": "t_sfx_0",
+   "name": "効果音 1",
+   "kind": "audio",
+   "role": "sfx",
+   "clips": []
+  },
+  {
+   "id": "t_music_0",
+   "name": "音楽",
+   "kind": "audio",
+   "role": "bgm",
+   "clips": []
+  }
+ ],
+ "meta": [
+  {
+   "id": "m_cuts",
+   "kind": "cuts",
+   "name": "カット",
+   "items": []
+  },
+  {
+   "id": "m_notes",
+   "kind": "notes",
+   "name": "ト書き",
+   "items": []
+  }
+ ]
+}

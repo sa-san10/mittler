@@ -1,0 +1,13 @@
+assets/
+work/
+output/
+.mittler/
+.claude-cut/
+__pycache__/
+*.tmp
+*.part
+*.test.cut.json
+debug.log
+# クラウドの同期（Google ドライブのパソコン版など）が作るフォルダ
+.tmp.driveupload/
+.tmp.drivedownload/

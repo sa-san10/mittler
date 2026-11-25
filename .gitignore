@@ -1,0 +1,16 @@
+# 素材・書き出し・作業ファイルは入れない（スクリプトとタイムラインだけ）
+assets/
+work/
+output/
+.mittler/
+.claude-cut/
+*.tmp
+node_modules/
+*.vsix
+__pycache__/
+# お掃除（osouji.ps1）のゴミ箱と候補リスト
+_trash/
+お掃除候補*.txt
+dist/
+# Chromium（確かめの道具が起動するブラウザ・ほかのアプリ）が作業フォルダに書くログ
+debug.log

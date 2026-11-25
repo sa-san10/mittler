@@ -1,0 +1,25 @@
+{
+ "_": "解析の種類の一覧（ここが1か所）。by_type＝クリップの種類ごとにできる解析、labels＝編集画面の右クリックのメニューの名前（頭の {icon:名前} は編集画面がアイコンにする。editor/ui.js）。読むのは server/server.js（ジョブを受ける・GET /api/analyze で編集画面に渡す）・editor/analyze.js（その kinds と labels）。中身（解析のしかた）は pyengine/mittler/analyze.py の KINDS（名前がここと同じことは tools/smoke_same.py が確かめる）",
+ "by_type": {
+  "audio": ["beats", "transcribe", "stems"],
+  "tts": ["transcribe"],
+  "video": ["pose", "mask"],
+  "image": ["pose", "mask", "cutout"]
+ },
+ "labels": {
+  "beats": "{icon:drum} 拍を取る（librosa）",
+  "transcribe": "{icon:sticky-note} 文字起こし（whisper large-v3）",
+  "stems": "{icon:mic} ボーカルと伴奏に分ける（demucs）",
+  "pose": "{icon:person-standing} 人のポーズ（YOLO11）",
+  "mask": "{icon:user} 人のマスク（YOLO11）",
+  "cutout": "{icon:scissors} 人の切り抜き（rembg）"
+ },
+ "labels_en": {
+  "beats": "{icon:drum} Detect beats (librosa)",
+  "transcribe": "{icon:sticky-note} Transcribe (whisper large-v3)",
+  "stems": "{icon:mic} Split vocals and accompaniment (demucs)",
+  "pose": "{icon:person-standing} Human pose (YOLO11)",
+  "mask": "{icon:user} Human mask (YOLO11)",
+  "cutout": "{icon:scissors} Cut out people (rembg)"
+ }
+}

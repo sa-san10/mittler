@@ -1,0 +1,7 @@
+# Mittler の 3D のエフェクト（GPU の 3D：effects_lib/common/gl_*.py・pyengine/mittler/gl3d.py）を使う作品だけに要るもの。
+# 描く python（requirements-engine.txt を入れた venv）に、足して入れる（ほかは変えない）：
+#   <venv>\Scripts\python.exe -m pip install --only-binary=:all: -r <mittler>\setup\requirements-3d.txt
+# 3D を使わない作品は、これが無くても今までどおり動く（gl3d は使うときに初めて moderngl を読む）。
+# 版は 2026-11-13 に作者の PC（Python 3.14.3）で入れて確かめたもの。Blender の 3D（blender3d）は Blender そのものが要る（docs/インストールガイド.md の 14）。
+moderngl==5.13.0
+glcontext==3.1.0

@@ -1,0 +1,7 @@
+{
+ "about": "編集画面の「エフェクト」タブの「部品の置き場」に出すフォルダ（effects_lib/ の下）。上から順に出す。名前（ファイルの名前）はフォルダをまたいで重ならないこと。見出しは辞書の鍵 as.libPack.<dir>（editor/i18n）。pyengine/mittler/serve.py の /effects_lib と server/server.js の /api/effects/add が読む",
+ "packs": [
+  { "dir": "common" },
+  { "dir": "false_maria" }
+ ]
+}
