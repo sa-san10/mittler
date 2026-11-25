@@ -1,6 +1,6 @@
 # Mittler
 
-![The Mittler editor in VS Code: preview, timeline with video, music, beats and lyric timing, and the clip inspector](images/screenshot.webp)
+![Mittler in VS Code: the project files on the left, the Mittler editor (preview, timeline with video, music, beats and lyric timing, clip inspector) in the middle, and Claude Code on the right](images/screenshot.webp)
 
 English | [日本語](README.ja.md)
 
