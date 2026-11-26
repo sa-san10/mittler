@@ -152,7 +152,7 @@
   // 前は文の言葉から決めていた（「できなかった」なら失敗…）。言葉を切り替えられるようにしたので、文から決めるのをやめた（2026-11-12）
 
   // ---- 押せないボタンに理由を出す：disabled のあいだだけ、title の頭に「押せない：理由」を付ける ----
-  // （disabled のボタンは title のツールチップが出ない環境があるので、理由は横の説明の欄にも出す：cutedit.js の cutHint）
+  // （disabled のボタンは title のツールチップが出ない環境があるので、理由はマウスのそばの札にも出す：cutedit.js の whyTip）
   // reason は文字列か、あとで訳す文（$L）。ボタンの元のツールチップ（dataset.tip）は、決まった文なら data-i18n-title から入れ直される
   function setDisabled(btn, reason) {
     if (!btn) return;

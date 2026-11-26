@@ -234,10 +234,11 @@ def main(work):
             paste = pg.locator('#cutbar [data-act=paste]')
             ok1 = paste.is_disabled() and (paste.get_attribute('title') or '').startswith(NOPE) and 'コピー' in (paste.get_attribute('data-why') or '')
             bb = paste.bounding_box(); pg.mouse.move(bb['x'] + bb['width'] / 2, bb['y'] + bb['height'] / 2)
-            pg.wait_for_timeout(150); hint = pg.inner_text('#cutHint')
+            pg.wait_for_timeout(150); hint = pg.inner_text('#whyTip') if pg.locator('#whyTip:not([hidden])').count() else ''
+            hint0 = pg.inner_text('#cutHint')
             pg.evaluate("() => MITTLER_EDITOR.select('se')"); pg.keyboard.press('Control+c'); pg.wait_for_timeout(150)
-            check(ok1 and hint.startswith(NOPE) and not paste.is_disabled() and not (paste.get_attribute('title') or '').startswith(NOPE),
-                  f'ボタン：押せないボタンに理由（ツールチップと、マウスを乗せたときの説明の欄「{hint[:24]}…」）。押せるようになると理由が外れる')
+            check(ok1 and hint.startswith(NOPE) and NOPE not in hint0 and not paste.is_disabled() and not (paste.get_attribute('title') or '').startswith(NOPE),
+                  f'ボタン：押せないボタンに理由（ツールチップと、マウスのそばの札「{hint[:24]}…」。下の説明の欄には出さない）。押せるようになると理由が外れる')
             # 数の欄の横のコマ番号
             pg.evaluate("() => MITTLER_EDITOR.select('se')"); pg.wait_for_selector('#sel .fhint')
             h = pg.eval_on_selector_all('#sel .fhint', 'els => els.map(e => e.textContent)')

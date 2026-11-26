@@ -223,7 +223,8 @@
       ({ split: () => splitAtPlayhead(false), del: deleteSel, ripple: rippleDelete, gaps: closeGaps, copy, paste, dup: duplicate,
         linkon: () => setLinkOn(!S.linkOn), link, unlink, vaudio: videoAudioSel, latest: () => { if (window.MITTLER_PLAN) MITTLER_PLAN.adoptAll(null, true); } })[b.dataset.act]();
     });
-    // 押せないボタンにマウスを乗せたら、理由を右の説明の欄とツールチップに出す。
+    // 押せないボタンにマウスを乗せたら、理由をマウスのそばの浮いた札（ツールチップ）に出す。
+    // 前は右の説明の欄に出していて、長い理由で行が折り返し、下の画面が押し下げられた（2026-11-26）。説明の欄は選択の数・道具の案内だけにする
     // 押せないボタンはマウスの合図を受けない（editor.css で pointer-events:none）ので、バーの上のマウスの位置から、どのボタンの上かを見る
     const why = e => {
       let t = '', host = null;
@@ -233,7 +234,14 @@
       }
       bar.querySelectorAll('.grp[title]').forEach(g => { if (g !== host) g.removeAttribute('title'); });
       if (host && t) host.title = t;
-      if ((S.cutHintWhy || '') !== t) { S.cutHintWhy = t; $('cutHint').textContent = t || S.cutHintBase || ''; $('cutHint').classList.toggle('why', !!t); }
+      S.cutHintWhy = t;
+      let tip = $('whyTip');
+      if (!tip) { tip = document.createElement('div'); tip.id = 'whyTip'; tip.className = 'whyTip'; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip); }
+      if (!t) { tip.hidden = true; return; }
+      tip.textContent = t; tip.hidden = false;
+      const w = tip.offsetWidth, h = tip.offsetHeight;
+      tip.style.left = Math.max(4, Math.min(innerWidth - w - 4, e.clientX + 12)) + 'px';
+      tip.style.top = (e.clientY - h - 10 < 4 ? e.clientY + 18 : e.clientY - h - 10) + 'px';  // ふつうはマウスの上、上に余白が無ければ下
     };
     bar.addEventListener('mousemove', why); bar.addEventListener('mouseleave', () => why(null));
     refresh();
@@ -256,7 +264,7 @@
     const nl = window.MITTLER_PLAN && MITTLER_PLAN.pendingAdopt ? MITTLER_PLAN.pendingAdopt(null, true).length : 0;
     dis('latest', nl ? '' : $t('why.noNewTakes')); q('latest').textContent = nl ? $t('ce.btn.latestN', { n: nl }) : $t('ce.btn.latest');
     S.cutHintBase = n ? $t(n > 1 ? 'ce.selN' : 'ce.sel1', { n }) : (S.tool === 'razor' ? $t('ce.hintRazor') : S.tool === 'slip' ? $t('ce.hintSlip') : '');
-    if (!S.cutHintWhy) $('cutHint').textContent = S.cutHintBase;
+    $('cutHint').textContent = S.cutHintBase;
   }
 
   window.MITTLER_CUT = { splitAt, splitAtPlayhead, razorClick, razorHover, deleteSel, rippleDelete, closeGaps, copy, paste, duplicate, selectAll, nudge, jumpEdit,

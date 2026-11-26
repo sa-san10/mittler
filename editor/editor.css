@@ -463,8 +463,10 @@ summary{cursor:pointer}
 #cutbar .grp{display:flex;gap:3px;align-items:center}
 #cutbar .grp+.grp{padding-left:10px;border-left:1px solid var(--line)}
 #cutbar button{padding:0 8px;min-height:22px}
-#cutbar button:disabled{pointer-events:none}   /* 押せない理由は cutedit.js がバーの上のマウスの位置から出す（右の説明の欄とツールチップ） */
-#cutbar .hint.why{color:var(--warn)}
+#cutbar button:disabled{pointer-events:none}   /* 押せない理由は cutedit.js がバーの上のマウスの位置から出す（マウスのそばの札とツールチップ） */
+/* 押せないボタンの理由の札（cutedit.js。マウスのそばに浮かせて、ほかの画面を押し下げない） */
+.whyTip{position:fixed;z-index:70;max-width:min(520px,90vw);padding:4px 8px;border-radius:var(--r1);background:var(--panel);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);box-shadow:0 4px 14px rgba(0,0,0,.35);font-size:var(--fs-xs);pointer-events:none;white-space:normal}
+.whyTip[hidden]{display:none}
 #cutbar .hint{color:var(--dim);font-size:var(--fs-xs);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 body.tool-razor #laneList .clip{cursor:crosshair}
 body.tool-slip #laneList .clip{cursor:col-resize}
