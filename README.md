@@ -10,7 +10,7 @@ English | [日本語](README.ja.md)
 **Mittler** is a video editor extension for VS Code designed to work alongside an AI agent (such as Claude Code).
 It lets you inspect and edit timelines and Python effects created by your agent directly on a timeline UI in VS Code, and ask the agent for changes while looking at the exact frame.
 
-> **Alpha (0.9.0)**: Mittler is actively used for the author's own productions, but features, file formats, and settings may still change, and rough edges remain. Keep your projects under Git version control.
+> **Alpha (0.9.x)**: Mittler is actively used for the author's own productions, but features, file formats, and settings may still change, and rough edges remain. Keep your projects under Git version control.
 >
 > **Environment**: **Windows only** (see [docs/インストールガイド.md](docs/インストールガイド.md), section 12). Separate Node.js installation is not required (it uses VS Code's built-in Node), and there are no npm dependencies. The editor UI is available in English and Japanese; detailed documentation is in Japanese.
 

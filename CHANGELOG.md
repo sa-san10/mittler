@@ -3,7 +3,20 @@
 Notable changes to Mittler. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions before 0.9.0 were development builds used by the author and were not published; they are summarized here so the history of each feature is visible.
 
-## [0.9.0] (alpha) - Unreleased
+## [0.9.1] (alpha) - 2026-11-26
+
+### Changed
+- The playback video made after export is now a small H.264/AAC MP4 (fast start) instead of WebM. On some setups VS Code could not open any WebM file. Portrait projects now keep the short side at 540 px. `tools/make_proxy.py --format webm` is still available, and existing projects that point to a WebM keep working.
+- The reason a button is disabled is shown in a floating tooltip near the pointer instead of the hint area, so the layout no longer shifts.
+
+### Added
+- Click a warning or error in the top bar to open "Messages and log": the full message plus the recent editor log, selectable and copyable.
+- The playback video is reloaded after a failed load (on the next play or when the file changes), and the editor switches to rendered frames right away when it cannot be read.
+
+### Fixed
+- The GitHub Actions workflow file had a YAML error and never ran.
+
+## [0.9.0] (alpha) - 2026-11-25
 
 First version prepared for public release. It is an **alpha**: features, file formats, and settings may still change. The extension is marked as a preview in VS Code.
 
