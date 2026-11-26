@@ -4,7 +4,7 @@
 1. 再生用の動画が壊れている（作っている途中など）と、再生は描いたコマで続き、上のバーに注意（error 4 など）が出る
 2. 上のバーの注意を押すと「知らせとログ」の窓が出て、全文と最近の記録（動画の error）が選べる形で見える・コピーでページのエラーにならない
 3. 正しい動画に置きかわると（同じ名前）、読み直して再生用の動画で流れる（前は同じ名前のままでは二度と読み直さなかった）
-4. make_proxy.py は書き終わるまで別の名前に書く（作っている途中の .webm が見えない）
+4. make_proxy.py は書き終わるまで別の名前に書く（作っている途中の動画が見えない）
 """
 import json
 import os
@@ -74,7 +74,6 @@ try:
         tmp = pdir / 'clip.webm.new'
         tmp.write_bytes(good.read_bytes()); os.replace(tmp, pdir / 'clip.webm')  # 作り終わって置きかわった
         time.sleep(2)
-        _b = urllib.request.urlopen(url.split('/editor/')[0] + '/project/work/proxy/clip.webm', timeout=10).read(); print('served', len(_b), 'good', good.stat().st_size)
         # 読み直しは、ファイルが変わった知らせか、次の再生で起きる。ここは再生で読み直す道を確かめるため、壊れた状態のまま知らせを待たずに再生する道も通る
         pg.evaluate('window.MITTLER_EDITOR.seek(1.0)')
         pg.click('#play'); time.sleep(3)
@@ -92,12 +91,12 @@ try:
     p = subprocess.Popen([PY, '-X', 'utf8', str(ROOT / 'tools' / 'make_proxy.py'), str(tlf), str(src), '--no-timeline'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
     seen_partial_final = False
     while p.poll() is None:
-        f = pdir / 'src.webm'
-        if f.exists() and any(pdir.glob('src.part*.webm')):
+        f = pdir / 'src.mp4'
+        if f.exists() and any(pdir.glob('src.part*.mp4')):
             seen_partial_final = True
         time.sleep(0.05)
     out, err = p.communicate()
-    check(p.returncode == 0 and (pdir / 'src.webm').is_file() and not seen_partial_final and not list(pdir.glob('*.part*')),
+    check(p.returncode == 0 and (pdir / 'src.mp4').is_file() and not seen_partial_final and not list(pdir.glob('*.part*')),
           f'4 make_proxy.py は書き終わってから置きかえる（{out.strip()[:80]}）')
 finally:
     try:

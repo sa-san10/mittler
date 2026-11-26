@@ -112,14 +112,14 @@
   }
   // テイクの動画を真ん中のプレビューで見る（#takeView。タイムラインの絵の上に重ねる）。操作はテイクの行（▶／一時停止・位置・閉じる）。
   // タイムラインを再生する・時刻を動かすと閉じる（editor.js の setPlaying・seek）
-  // VS Code の中では H.264・AAC の MP4 を再生できないので、サーバーに WebM を作ってもらってから流す（/api/takeproxy。2 回目からは作ったものを使う）
+  // 軽い再生用の MP4 をサーバーに作ってもらってから流す（/api/takeproxy。2 回目からは作ったものを使う）
   const TV = { src: null, take: null, req: 0 };
   const tvEl = () => $('takeView');
   async function tvOpen(k) {
     const v = tvEl(), id = ++TV.req;
     if (S.playing) setPlaying(false);
     TV.take = k.id;
-    if (TV.loading && TV.src === k.src) return;  // WebM を作っている最中（もう一度押しても待つだけ）
+    if (TV.loading && TV.src === k.src) return;  // 再生用の動画を作っている最中（もう一度押しても待つだけ）
     if (TV.src !== k.src) {
       v.pause(); TV.src = k.src; TV.loading = true; v.hidden = false; showSrc($L('src.takeLoading', { id: k.id })); tvSync();
       let j = {};

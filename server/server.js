@@ -595,7 +595,7 @@ function start(opts) {
   }
   const music = require('./music').create({ project, readTimeline, inside, hiddenIn, probeDur, notify: k => notify(k), log: m => log(m), stateDir, openExternal, lang: () => lang });
   // ---- 書き出し：このPCで `mittler video`（区間に分けて並列）→ <プロジェクト>/output/<名前>.mp4
-  //      → 頼まれたら再生用の WebM（make_proxy.py --no-timeline。preview.proxy は編集画面が入れる）
+  //      → 頼まれたら再生用の MP4（make_proxy.py --no-timeline。preview.proxy は編集画面が入れる）
   const EXPORT_BUSY = ['preparing', 'rendering', 'muxing', 'proxy', 'cancelling'];
   const exportJob = { state: 'idle' };
   function runLines(exe, args, spawnOpts, onLine) {  // 1行ずつ onLine に渡す。終わったら { code, out, err }
@@ -1205,14 +1205,14 @@ function start(opts) {
     const r = await withTimeline(tl => { OPS.applyProxy(tl, pr.proxy, $t('ex.proxyNote', { name: path.basename(f) })); });
     return Object.assign(r, { proxy: pr.proxy, bytes: pr.bytes, sec: pr.sec });
   }
-  // 🎬 テイクの動画を真ん中のプレビューで見る（editor/plan.js の ▶。2026-11-16）：VS Code は H.264・AAC を再生できないので、WebM（make_proxy.py --no-timeline・高さ 720）を
-  // 作品の work/proxy/<元の名前>.webm に作る。前に作ったもののほうが元より新しければそのまま。元が WebM ならそのまま
+  // 🎬 テイクの動画を真ん中のプレビューで見る（editor/plan.js の ▶。2026-11-16）：軽い再生用の MP4（make_proxy.py --no-timeline・短い辺 720）を
+  // 作品の work/proxy/<元の名前>.mp4 に作る。前に作ったもののほうが元より新しければそのまま。元が WebM ならそのまま
   async function takeProxy(rel) {
     const f = inside(project, String(rel || '').replace(/\\/g, '/'));
     if (!f || !fs.existsSync(f) || !/\.(mp4|mov|mkv|webm)$/i.test(f)) throw KE('srv.op.noVideoFile', { path: rel });
     const relOf = x => path.relative(project, x).split(path.sep).join('/');
     if (/\.webm$/i.test(f)) return { ok: true, proxy: relOf(f), made: false };
-    const out = path.join(project, 'work', 'proxy', path.basename(f, path.extname(f)) + '.webm');
+    const out = path.join(project, 'work', 'proxy', path.basename(f, path.extname(f)) + '.mp4');
     const fresh = () => fs.existsSync(out) && fs.statSync(out).mtimeMs >= fs.statSync(f).mtimeMs;
     if (fresh()) return { ok: true, proxy: relOf(out), made: false };
     return once(out, async () => {
@@ -1562,7 +1562,7 @@ function start(opts) {
         const q = JSON.parse((await readBody(req, 1 << 20)).toString('utf8') || '{}');
         try { return send(res, 200, await runOp(String(q.op || ''), q.args || {})); } catch (e) { return send(res, 200, { ok: false, error: E(e) }); }
       }
-      // 🎞 再生用の動画（WebM）を作ってプレビューに使う（API の proxy。書き出しの窓の「完了後、この動画をプレビュー再生に使う」と同じ make_proxy.py と preview.proxy）
+      // 🎞 再生用の動画（MP4）を作ってプレビューに使う（API の proxy。書き出しの窓の「完了後、この動画をプレビュー再生に使う」と同じ make_proxy.py と preview.proxy）
       if (p === '/api/proxy' && req.method === 'POST') {
         const q = JSON.parse((await readBody(req, 1 << 16)).toString('utf8') || '{}');
         try { return send(res, 200, await makeProxy(String(q.src || ''))); } catch (e) { return send(res, 200, { ok: false, error: E(e) }); }
@@ -1586,7 +1586,7 @@ function start(opts) {
         if (!/^[0-9a-f]{40}$/.test(k)) return send(res, 400, { error: 'bad key' });
         return sendFile(req, res, path.join(cacheRoot(), 'cache', 'frames', k.slice(0, 2), k + '.p.jpg'), 'private, max-age=604800, immutable');
       }
-      // 🎬 テイクの動画を見る：再生用の WebM（作るだけ。preview.proxy は変えない）・サムネ
+      // 🎬 テイクの動画を見る：再生用の MP4（作るだけ。preview.proxy は変えない）・サムネ
       if (p === '/api/takeproxy' && req.method === 'POST') {
         const q = JSON.parse((await readBody(req, 1 << 16)).toString('utf8') || '{}');
         try { return send(res, 200, await takeProxy(String(q.src || ''))); } catch (e) { return send(res, 200, { ok: false, error: E(e) }); }

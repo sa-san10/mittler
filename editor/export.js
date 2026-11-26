@@ -1,6 +1,6 @@
 // Mittler 書き出し（Python エンジンだけ）。上の「書き出し」→ 品質・範囲・ファイル名を決めて始める。
 // サーバー（/api/export）がこのPC（サーバーが動いている PC）で描いて <プロジェクト>/output/<名前>.mp4 に書く。進み具合は1秒ごとに聞く。
-// 「完了後、この動画をプレビュー再生に使う」なら WebM も作り、できたら preview.proxy をそれにする（タイムラインを書くのは編集画面だけ）。
+// 「完了後、この動画をプレビュー再生に使う」なら再生用の MP4 も作り、できたら preview.proxy をそれにする（タイムラインを書くのは編集画面だけ）。
 // 🏆 マスター書き出し（機能追加案03 v2）：同じ枠で /api/export に {master: true}。設定・道具・キャッシュは /api/master、キャッシュの削除は /api/master/cache/clear。
 // 画質（作品の settings.master.upscale。2026-10-31）：標準（none：高画質化なし・作品の大きさのまま 60fps）／高画質（アニメ）（anime）／高画質（実写）（real）。
 //   選ぶとタイムラインに書く（作品ごと）。クリップごとの上書きは映像クリップの欄（warp.js の「マスター画質」）。
@@ -300,12 +300,12 @@
     } else { btn.textContent = X('btn'); btn.classList.remove('busy'); mbtn.innerHTML = MASTER_LABEL(); mbtn.classList.remove('busy'); }
   }
   btnTitles(); barText();
-  // できたら：プレビュー用の WebM を preview.proxy に入れる（1回だけ。取り消しもできる）
+  // できたら：再生用の動画を preview.proxy に入れる（1回だけ。取り消しもできる）
   function applyProxy() {
     const r = job.result; if (job.state !== 'done' || !r || !r.proxy || !job.wantProxy) return;  // wantProxy はサーバーが覚えている
     const key = `${job.started}|${r.proxy}`; if (applied === key) return; applied = key;
     // API（tools/mittler_api.py の export）で始めた書き出しは、サーバーがタイムラインに入れた（job.proxyApplied）：読み込み直すだけ
-    if (job.proxyApplied || (S.tl.preview && S.tl.preview.proxy === r.proxy)) {  // 同じ名前の WebM を作り直した：読み込み直す
+    if (job.proxyApplied || (S.tl.preview && S.tl.preview.proxy === r.proxy)) {  // 同じ名前の再生用の動画を作り直した：読み込み直す
       const v = $('proxy'); v.removeAttribute('src'); v.setAttribute('src', projUrl(r.proxy) + '?v=' + job.finished); return;
     }
     change(() => { OPS.applyProxy(S.tl, r.proxy, X('proxyNote', { name: base(r.path) })); });

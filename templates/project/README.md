@@ -23,7 +23,7 @@ Mittler の作品フォルダです（{{DATE}} 作成）。VS Code で `{{TIMELI
     characters/         キャラの立ち絵
     overlays/           重ね絵（フキダシ・スタンプなどの透過 PNG）
   work/               作業ファイル（git 管理外）
-    proxy/              再生用の動画（WebM）
+    proxy/              再生用の動画（MP4）
   output/             書き出した MP4（git 管理外）
   .mittler/           この PC 用のファイル（Mittler の場所・AI 用ガイドの写し・編集画面の現在状態。git 管理外。編集画面を開くたびに生成）
   pronunciation.json  セリフの読み辞書

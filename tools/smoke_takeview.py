@@ -1,7 +1,7 @@
 """🎬 テイクの動画を真ん中のプレビューで見る（editor/plan.js の ▶・サムネ。2026-11-16）の確かめ。ヘッドレスのブラウザ、localhost だけ。
   <Playwright の python> -X utf8 tools/smoke_takeview.py --render-python <描画の python> [--work <フォルダ>] [--shot <画像>]
 試しの作品は smoke_api.py と同じもの（動画化予定 plan_1 に H.264 の動画のテイク t1・t2）。確かめること：
-  サムネ（/api/takethumb）が出る・▶ で WebM（/api/takeproxy → work/proxy/<名前>.webm）を作ってプレビューで流れる（左上に「テイク t1」）・
+  サムネ（/api/takethumb）が出る・▶ で再生用の MP4（/api/takeproxy → work/proxy/<名前>.mp4）を作ってプレビューで流れる（左上に「テイク t1」）・
   行に位置と閉じるが出る・もう一度押すと一時停止・位置を動かせる・サムネで別のテイクに切りかわる・× で閉じてタイムラインの絵に戻る・
   タイムラインの再生・時刻を動かすと閉じる・タイムラインは書きかわらない・画面のエラーなし
 """
@@ -46,7 +46,7 @@ def main():
             pg.wait_for_function(f"() => !{tv}.hidden && !{tv}.paused && {tv}.currentTime > 0.2", timeout=120000)
             src = ev(f"() => {tv}.currentSrc")
             tag = ev("() => document.getElementById('srcTag').textContent")
-            check('work/proxy/plan_1_t1.webm' in src and (proj / 'work' / 'proxy' / 'plan_1_t1.webm').exists(), f'▶：WebM を作ってプレビューで流れる（{src.split("/project/")[-1]}）')
+            check('work/proxy/plan_1_t1.mp4' in src and (proj / 'work' / 'proxy' / 'plan_1_t1.mp4').exists(), f'▶：再生用の MP4 を作ってプレビューで流れる（{src.split("/project/")[-1]}）')
             check('t1' in tag and 'テイク' in tag, f'左上の札（{tag}）')
             vis = ev("() => !document.querySelector('.vtake[data-take=t1] .vctl').hidden && document.querySelector('.vtake[data-take=t2] .vctl').hidden")
             check(vis, '位置と閉じるは、見ているテイクの行だけに出る')
@@ -60,7 +60,7 @@ def main():
             ct = ev(f"() => {tv}.currentTime")
             check(0.8 < ct < 1.2, f'位置を動かせる（{ct:.2f} 秒）')
             pg.click('.vtake[data-take=t2] .vthumb')
-            pg.wait_for_function(f"() => {tv}.currentSrc.includes('plan_1_t2.webm') && !{tv}.paused", timeout=120000)
+            pg.wait_for_function(f"() => {tv}.currentSrc.includes('plan_1_t2.mp4') && !{tv}.paused", timeout=120000)
             check(True, 'サムネを押すと、そのテイクに切りかわって流れる')
             pg.click('.vtake[data-take=t2] .vclose')
             time.sleep(0.3)

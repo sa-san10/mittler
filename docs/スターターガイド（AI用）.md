@@ -447,12 +447,12 @@ smoke test には 3 つの実行形態があります。いずれも試しの作
 | smoke_api.py | 人の操作を API から（2026-11-15。`<Playwright の python> -X utf8 tools\smoke_api.py --render-python <描画の python> [--work <フォルダ>] [--only 名前,…]`。自分で試しの作品と偽の VOICEVOX を作り、サーバーを立てて止める）：(a) ボタンで押した結果と `mittler_api.py` の結果が同じタイムライン（セリフ・字幕・テイク・採用・動画の音・カットの段・カット編集・音ハメ 23 種）、(b) API だけのもの（まとめての TTS・書き出し・PNG・再生用の動画・マスターの画質・部品・プリセット・新しい作品・断る理由）、(c) 見える操作 `ui`（開いていなければ理由・取り消しの記録を増やさない）、(d) オート、(e) 2026-11-14 の知らせの直し（速さ・重なりの印・再生の知らせの色・フック・mittler.cmd の引数）、(f) Suno の歌詞の時刻・2 本の注意（偽のサイドカー） |
 | smoke_new_project.py | new_project で作ったばかりの作品：空のタイムライン・画像・字幕・色・書き出し、「＋ 新規」の窓から作る |
 | smoke_compat.py | 前の名前（claude-cut）で作った作品が直さずに動くこと（ブラウザは要らない。`<描画の python> -X utf8 tools\smoke_compat.py`。自分でサーバーを2回立てて止める）：名前の1か所（`server/names.js`・`pyengine/mittler/names.py`）の決まり、`ccpy`＝`mittler`、前の名前だけの作品（`format` が `claude-cut/py1`・`.claude-cut/`・`cc_state.py`・`ccpy`・`CC_*`・`X-CC-Token`）と新しい名前だけの作品が同じ絵で動く、設定 `claudeCut.*` の読み方（VS Code の代わりの偽物で） |
-| smoke_export.py | 書き出し（一部・止める・再生用 WebM）。`*.test.cut.json` で。`--remote-project` で、ほかの PC（Remote-SSH の先）で動かしたサーバーにも（ポートを転送して） |
+| smoke_export.py | 書き出し（一部・止める・再生用の動画）。`*.test.cut.json` で。`--remote-project` で、ほかの PC（Remote-SSH の先）で動かしたサーバーにも（ポートを転送して） |
 | smoke_meta.py | メタデータ。作品は歌詞のメタデータが2行以上 |
 | smoke_annotate.py | 画面への書き込みをどの AI にも渡せるか：描いて「AI に渡す」→ 保存・クリップボードに描いた画面の場所と頼みの文・`state.json` の `annotations_pending`・フックが添えると外れる。`<描画の python> -X utf8 tools\smoke_annotate.py` |
 | smoke_cachedir.py | ためた絵の置き場を作品の外にする設定（`mittler.cache.dir`＝`MITTLER_CACHE_DIR`）：Python と JS が同じ置き場を返す・設定なしは作品の `work/`・設定ありは置き場の下で作品の `work/cache` を作らない・書き出しが同じ・サーバーの止めた 1 コマと「ためた絵を消す」も置き場。`<描画の python> -X utf8 tools\smoke_cachedir.py` |
 | smoke_html_font.py | HTML のレイヤーの書体：ページの `@font-face` の書体が、新しいブラウザの最初のコマから効いているか（区間の頭で字体がカクッと変わらない）。`<描画の python> -X utf8 tools\smoke_html_font.py` |
-| smoke_proxy_reload.py | 再生用の動画が一度読めなかったあとの立ち直り（作りかけ・壊れた WebM → 上のバーに注意 → 置きかわったら読み直して流れる）・上のバーの注意を押すと出る「知らせとログ」の窓（全文と最近の記録・コピー）・`make_proxy.py` は書き終わってから置きかえる。`<描画の python> -X utf8 tools\smoke_proxy_reload.py` |
+| smoke_proxy_reload.py | 再生用の動画が一度読めなかったあとの立ち直り（作りかけ・壊れた動画 → 上のバーに注意 → 置きかわったら読み直して流れる）・上のバーの注意を押すと出る「知らせとログ」の窓（全文と最近の記録・コピー）・`make_proxy.py` は書き終わってから置きかえる。`<描画の python> -X utf8 tools\smoke_proxy_reload.py` |
 | smoke_render_err.py | 描画のエラーの箱（素材が無い時刻で止める → 箱に無いファイルの名前と全文・選べる・コピー・閉じる → `state.json` の `render_error` とフックの 1 行 → 素材を置くと消える）。`<描画の python> -X utf8 tools\smoke_render_err.py`（試しの作品を自分で作って消す） |
 | smoke_snap.py | タイムラインのスナップ（クリップの端・拍・カット・再生位置、Alt・スナップのボタン・S キー・▾） |
 | smoke_warp.py | 映像の速さ・音ハメ（自動・点のドラッグ・頭を切る・表のファイル）、描いた絵が点の決める動画の秒のコマと一致するか |

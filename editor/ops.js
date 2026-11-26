@@ -285,7 +285,7 @@
     const wup = ((tl.settings || {}).master || {}).upscale || '', K = kinds || { anime: 'realesr-animevideov3', real: 'realesrgan-x4plus' }, m = (settings || {}).esrganModel;
     return wup || (m === K.real ? 'real' : m === K.anime || !m ? 'anime' : '');
   }
-  // 再生用の動画（WebM）をプレビューに使う
+  // 再生用の動画（MP4）をプレビューに使う
   function applyProxy(tl, proxy, note) { tl.preview = Object.assign({}, tl.preview || {}, { proxy, proxy_note: note }); }
   // 音のクリップのステム（Suno の audio-stems の歌・伴奏・楽器ごとの WAV など。2026-11-16）を、ミュートした音のトラックに 1 本ずつ置く
   // （解析の「ボーカルと伴奏に分ける」と同じ形：参照のトラックの前・同じ時刻と長さ・in と音量はもとのクリップと同じ＝曲の頭からのステム）。stems：[{src, name}]

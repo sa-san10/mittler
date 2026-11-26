@@ -38,7 +38,7 @@
   export-status [--wait] / export-cancel  進み具合（--wait：終わるまで待って進み具合を出す）・止める
   master-info / master-cache-clear        マスターの設定・道具・キャッシュ／キャッシュを空にする
   still [--at 秒]                          1 コマを PNG（output/stills/。--at が無ければ編集画面の今の時刻）
-  proxy <output/…mp4>                      再生用の動画（WebM）を作ってプレビューに使う
+  proxy <output/…mp4>                      再生用の動画（MP4）を作ってプレビューに使う
 ■ 映像・音
   place-video <素材> [--at 秒] [--track <id>]  動画を映像トラックに置く（音があれば取り出してリンクして置く）
   video-audio <映像クリップ>…              動画の音を置く（取り出して「動画の音」のトラックにリンクして置く）

@@ -155,7 +155,7 @@ VS Code ── extension.js ──（Webview の iframe）──▶ 編集画面
   - `jobs.py`：ジョブ係。
   - `h3_jobs.py`／`codex_jobs.py`／`openai_image_jobs.py`／`gemini_image_jobs.py`：生成アダプタ。
   - `tts_gen.py`：TTS 生成。
-  - `make_proxy.py`：再生用 WebM の作成。
+  - `make_proxy.py`：再生用の動画（MP4。`--format webm` も）の作成。
 - **検証スクリプト**：`smoke_*.py`（一覧は [AI 用ガイド](スターターガイド（AI用）.md) の 7）。
 - **初期設定チェック**：`setup/mittler_setup.py`（詳細は `setup/README.md`）。
 
