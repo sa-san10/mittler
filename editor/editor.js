@@ -232,7 +232,7 @@ function setPlaying(on) {
     clearTimeout(exactTimer); abortExact();  // 止めていたときの絵の頼みは取り消す（再生用の動画に接続を空ける）
     if (S.t >= dur()) S.t = 0;
     // 再生用の動画が使えない（読めない・再生を断られた・止まったまま）ときは、動画なしで時計で進める（絵は描画サーバーの描画を追いかける）
-    // 前に読めなかった再生用の動画は、再生のたびに読み直す（作っている途中のファイルを読んで error 4 になると、同じ名前のままでは二度と読み直さなかった。2026-11-26 mv1）
+    // 前に読めなかった再生用の動画は、再生のたびに読み直す（作っている途中のファイルを読んで error 4 になると、同じ名前のままでは二度と読み直さなかった）
     if (v.src && v.error) { reloadProxy(`前は error ${v.error.code}`); v = $('proxy'); v.muted = !!ownAudio; }  // 要素ごと作り直すので、取り直す
     S.clock = { t0: S.t, at: performance.now() }; S.noProxy = !v.src || !!v.error; S.clockMode = false;
     // ためた絵で流す（editor/cacheplay.js）：再生位置から先がだいたいためてあり、音のトラックがあるとき。書き出し版の動画（直す前の絵かもしれない）より今のタイムライン
@@ -1287,7 +1287,7 @@ $('status').addEventListener('click', async () => {
 });
 // 押せる知らせ（「ここを押すと…」。ボタンの形で出る）は、キーボードでも押せる（Tab で移って Enter・Space）
 $('status').addEventListener('click', () => { const l = $('status').dataset.level; if (l === 'bad' || l === 'warn') openLogPanel(); });
-// 知らせとログの窓（2026-11-22 ユーザー「ここのエラークリックしたらエラーログ画面ポップアウトして表示するようにして」）：今の知らせの全文と、
+// 知らせとログの窓（上のバーの注意・失敗を押すと出る）：今の知らせの全文と、
 // 編集画面の最近の記録（動画の読み込み・描画・保存などの失敗）を、選んでコピーできる形で出す。「コピー」で全部をクリップボードに
 function openLogPanel() {
   let box = $('logPanel');
