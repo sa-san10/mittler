@@ -452,6 +452,7 @@ smoke test には 3 つの実行形態があります。いずれも試しの作
 | smoke_annotate.py | 画面への書き込みをどの AI にも渡せるか：描いて「AI に渡す」→ 保存・クリップボードに描いた画面の場所と頼みの文・`state.json` の `annotations_pending`・フックが添えると外れる。`<描画の python> -X utf8 tools\smoke_annotate.py` |
 | smoke_cachedir.py | ためた絵の置き場を作品の外にする設定（`mittler.cache.dir`＝`MITTLER_CACHE_DIR`）：Python と JS が同じ置き場を返す・設定なしは作品の `work/`・設定ありは置き場の下で作品の `work/cache` を作らない・書き出しが同じ・サーバーの止めた 1 コマと「ためた絵を消す」も置き場。`<描画の python> -X utf8 tools\smoke_cachedir.py` |
 | smoke_html_font.py | HTML のレイヤーの書体：ページの `@font-face` の書体が、新しいブラウザの最初のコマから効いているか（区間の頭で字体がカクッと変わらない）。`<描画の python> -X utf8 tools\smoke_html_font.py` |
+| smoke_proxy_reload.py | 再生用の動画が一度読めなかったあとの立ち直り（作りかけ・壊れた WebM → 上のバーに注意 → 置きかわったら読み直して流れる）・上のバーの注意を押すと出る「知らせとログ」の窓（全文と最近の記録・コピー）・`make_proxy.py` は書き終わってから置きかえる。`<描画の python> -X utf8 tools\smoke_proxy_reload.py` |
 | smoke_render_err.py | 描画のエラーの箱（素材が無い時刻で止める → 箱に無いファイルの名前と全文・選べる・コピー・閉じる → `state.json` の `render_error` とフックの 1 行 → 素材を置くと消える）。`<描画の python> -X utf8 tools\smoke_render_err.py`（試しの作品を自分で作って消す） |
 | smoke_snap.py | タイムラインのスナップ（クリップの端・拍・カット・再生位置、Alt・スナップのボタン・S キー・▾） |
 | smoke_warp.py | 映像の速さ・音ハメ（自動・点のドラッグ・頭を切る・表のファイル）、描いた絵が点の決める動画の秒のコマと一致するか |

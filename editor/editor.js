@@ -51,12 +51,15 @@ S.status = { msg: '', level: '' };
 function setStatus(msg, level, opts) {
   msg = msg == null ? '' : msg; level = level || '';
   S.status = { msg, level }; S.statusKey = (msg && msg.k) || '';
+  if ((level === 'bad' || level === 'warn') && String(msg)) logKeep('[' + level + '] ' + String(msg));
   paintStatus();
   if (level === 'bad' && window.MITTLER_NOTIFY && !(opts && opts.toast === false)) MITTLER_NOTIFY(msg, 'bad', { key: 'st:' + (S.statusKey || String(msg).slice(0, 12)) });
 }
 function paintStatus() {
   const el = $('status'), s = String(S.status.msg); el.textContent = s; el.title = s; el.dataset.level = S.status.level;
   if (S.status.level === 'act') { el.tabIndex = 0; el.setAttribute('role', 'button'); } else { el.removeAttribute('tabindex'); el.setAttribute('role', 'status'); }
+  const isErr = S.status.level === 'bad' || S.status.level === 'warn';  // 注意・失敗は押すと全文とログの窓（openLogPanel）
+  el.classList.toggle('clickLog', isErr); if (isErr) { el.title = s + '\n\n' + $t('lg.tip'); el.tabIndex = 0; el.setAttribute('role', 'button'); }
 }
 // 今の知らせが、この鍵（$L の鍵。前の頭の一致）か
 const statusIs = (...keys) => keys.some(k => S.statusKey === k || S.statusKey.startsWith(k + '.'));
@@ -73,7 +76,7 @@ async function loadTimeline() {
   const r = await fetch('/api/timeline', { cache: 'no-store' }); const j = await r.json();
   S.tl = j.timeline; S.file = j.file; $('file').textContent = S.tl.name || j.file; $('file').title = $t('file.title', { name: S.tl.name || '', file: j.file });
   $('proxy').hidden = false;
-  const src = S.tl.preview && S.tl.preview.proxy ? projUrl(S.tl.preview.proxy) : '';
+  const src = proxySrc();
   if ($('proxy').getAttribute('src') !== src) { if (src) $('proxy').setAttribute('src', src); else $('proxy').removeAttribute('src'); }
   if (S.sel && !findClip(S.sel)) S.sel = null;
   S.lastSaved = JSON.stringify(S.tl);
@@ -191,18 +194,37 @@ async function fetchFrame(t) {
   } catch (e) { }
 }
 // 画面で起きたことを VS Code の記録（サーバーの標準エラー）に残す
-function clog(msg) { try { api('/api/log', { method: 'POST', body: String(msg).slice(0, 2000) }); } catch (e) { } }
+// 編集画面の記録（サーバーのログにも送る）。最近のものは手元にも残して、上のバーの知らせを押すと出る窓（openLogPanel）に出す
+S.logBuf = [];
+const logStamp = () => new Date().toTimeString().slice(0, 8);
+function logKeep(line) { S.logBuf.push(logStamp() + ' ' + line); if (S.logBuf.length > 300) S.logBuf.splice(0, S.logBuf.length - 300); }
+function clog(msg) { logKeep(String(msg).slice(0, 2000)); try { api('/api/log', { method: 'POST', body: String(msg).slice(0, 2000) }); } catch (e) { } }
 window.addEventListener('error', e => clog('error: ' + e.message + ' @' + (e.filename || '').split('/').pop() + ':' + e.lineno));
 window.addEventListener('unhandledrejection', e => clog('rejection: ' + (e.reason && (e.reason.stack || e.reason.message) || e.reason)));
-['error', 'stalled', 'abort'].forEach(ev => $('proxy').addEventListener(ev, () => { const v = $('proxy'); clog(`動画 ${ev}: error=${v.error && v.error.code} ${v.error && v.error.message} rs=${v.readyState} ns=${v.networkState} src=${decodeURIComponent(v.currentSrc).slice(-40)}`); }));
-$('proxy').addEventListener('loadedmetadata', () => { const v = $('proxy'); clog(`動画を読めた: ${v.videoWidth}x${v.videoHeight} ${v.duration.toFixed(1)}秒 ${decodeURIComponent(v.currentSrc).slice(-30)}`); });
+// 再生用の動画の要素に、記録の受け手を付ける（読み直すときは要素ごと作り直すので、そのたびに付ける）
+function bindProxy(el) {
+  ['error', 'stalled', 'abort'].forEach(ev => el.addEventListener(ev, () => { const v = el; clog(`動画 ${ev}: error=${v.error && v.error.code} ${v.error && v.error.message} rs=${v.readyState} ns=${v.networkState} src=${decodeURIComponent(v.currentSrc).slice(-40)}`); }));
+  el.addEventListener('loadedmetadata', () => { const v = el; clog(`動画を読めた: ${v.videoWidth}x${v.videoHeight} ${v.duration.toFixed(1)}秒 ${decodeURIComponent(v.currentSrc).slice(-30)}`); });
+}
+bindProxy($('proxy'));
 function invalidateExact() { S.exactT = null; if (!S.playing) requestExact(); }
+// 再生用の動画の URL。読み直したあとは印（?r=）を付ける：ブラウザは動画の中身を URL ごとに覚えていて、同じ URL では前に読めなかった中身を使い続けた
+function proxySrc() { return S.tl.preview && S.tl.preview.proxy ? projUrl(S.tl.preview.proxy) + (S.proxyBust ? '?r=' + S.proxyBust : '') : ''; }
+// 再生用の動画を新しく読み直す（前に読めなかった中身・途中の中身を使わせない）
+function reloadProxy(why) {
+  const v = $('proxy'); if (!(S.tl.preview && S.tl.preview.proxy)) return;
+  clog('再生用の動画を読み直す：' + why); S.proxyReloaded = performance.now();
+  // 要素ごと作り直す（同じ要素で読み直すと、前に読めなかった中身の続きを使い、シークが失敗し続けることがあった）
+  const nv = v.cloneNode(false); nv.removeAttribute('src'); nv.muted = v.muted;
+  v.pause(); v.removeAttribute('src'); v.load(); v.replaceWith(nv); bindProxy(nv);
+  S.proxyBust = Date.now(); nv.setAttribute('src', proxySrc()); nv.load();
+}
 function proxyName() { return base(S.tl.preview && S.tl.preview.proxy).replace(/\.mp4$/, '') || $t('src.noVideo'); }
 // プレビューの左上の札（今の絵がどこから来たか）。s は文字列か $L（言葉を切り替えたら訳し直す）
 function showSrc(s) { S.srcMsg = s; $('srcTag').textContent = String(s); }
 function setPlaying(on) {
   S.playing = on; $('play').innerHTML = MITTLER_ICON(on ? 'pause' : 'play');
-  const v = $('proxy');
+  let v = $('proxy');
   const ownAudio = window.MITTLER_AUDIO && window.MITTLER_AUDIO.has();  // 音のトラックがあれば、書き出し版の音は消して、トラックの音を鳴らす
   v.muted = !!ownAudio;
   if (on) {
@@ -210,6 +232,8 @@ function setPlaying(on) {
     clearTimeout(exactTimer); abortExact();  // 止めていたときの絵の頼みは取り消す（再生用の動画に接続を空ける）
     if (S.t >= dur()) S.t = 0;
     // 再生用の動画が使えない（読めない・再生を断られた・止まったまま）ときは、動画なしで時計で進める（絵は描画サーバーの描画を追いかける）
+    // 前に読めなかった再生用の動画は、再生のたびに読み直す（作っている途中のファイルを読んで error 4 になると、同じ名前のままでは二度と読み直さなかった。2026-11-26 mv1）
+    if (v.src && v.error) { reloadProxy(`前は error ${v.error.code}`); v = $('proxy'); v.muted = !!ownAudio; }  // 要素ごと作り直すので、取り直す
     S.clock = { t0: S.t, at: performance.now() }; S.noProxy = !v.src || !!v.error; S.clockMode = false;
     // ためた絵で流す（editor/cacheplay.js）：再生位置から先がだいたいためてあり、音のトラックがあるとき。書き出し版の動画（直す前の絵かもしれない）より今のタイムライン
     S.cachePlay = !!(ownAudio && window.MITTLER_CACHE && MITTLER_CACHE.canPlay(S.t));
@@ -218,13 +242,18 @@ function setPlaying(on) {
     } else if (!S.noProxy) {
       $('frameImg').hidden = true; $('gradeCv').hidden = true; showSrc(ownAudio ? $L('src.proxyAudio', { name: proxyName() }) : $L('src.proxy', { name: proxyName() }));
       v.currentTime = S.t;
-      v.play().catch(err => { clog('動画の再生を断られた: ' + err.name + ' ' + err.message); proxyFail($L('pf.refused', { err: err.name })); });
+      v.play().catch(err => {
+        // 読み直した直後の再生は AbortError で断られることがある（読み込みが再生の頼みを取り消す）：読めたら再生し直す。読めなければ下の見張りが 8 秒であきらめる
+        if (err.name === 'AbortError' && performance.now() - (S.proxyReloaded || 0) < 3000) { v.addEventListener('canplay', () => { if (S.playing && !S.noProxy) v.play().catch(() => { }); }, { once: true }); return; }
+        clog('動画の再生を断られた: ' + err.name + ' ' + err.message); proxyFail($L('pf.refused', { err: err.name }));
+      });
       // まだ読み込み中（readyState が 2 未満）なら、最大 8 秒待つ（すぐリアルタイム描画に落とさない）
       const waitMs = v.readyState < 2 ? 8000 : 2500, t0 = performance.now();
       if (v.readyState < 2) setStatus($L('st.proxyLoading'), 'busy');
       const watch = () => {
         if (!S.playing || S.noProxy) return;
         if (v.readyState >= 2 && !v.paused) { if (statusIs('st.proxyLoading')) setStatus(''); return; }
+        if (v.error) { proxyFail($L('pf.unreadable', { code: v.error.code })); return; }  // 読めなかった（壊れている・作りかけ）：待たずにあきらめる
         if (performance.now() - t0 > waitMs) { proxyFail($L('pf.stuck', { rs: v.readyState, ns: v.networkState, paused: v.paused })); return; }
         S.proxyWatch = setTimeout(watch, 250);
       };
@@ -1257,7 +1286,32 @@ $('status').addEventListener('click', async () => {
   try { await api('/api/reveal', { method: 'POST', body: JSON.stringify({ path: S.lastStill }), headers: { 'Content-Type': 'application/json' } }); } catch (e) { }
 });
 // 押せる知らせ（「ここを押すと…」。ボタンの形で出る）は、キーボードでも押せる（Tab で移って Enter・Space）
-$('status').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && $('status').dataset.level === 'act') { e.preventDefault(); e.stopPropagation(); $('status').click(); } });
+$('status').addEventListener('click', () => { const l = $('status').dataset.level; if (l === 'bad' || l === 'warn') openLogPanel(); });
+// 知らせとログの窓（2026-11-22 ユーザー「ここのエラークリックしたらエラーログ画面ポップアウトして表示するようにして」）：今の知らせの全文と、
+// 編集画面の最近の記録（動画の読み込み・描画・保存などの失敗）を、選んでコピーできる形で出す。「コピー」で全部をクリップボードに
+function openLogPanel() {
+  let box = $('logPanel');
+  if (!box) {
+    box = document.createElement('div'); box.id = 'logPanel'; box.className = 'logPanel'; box.setAttribute('role', 'dialog');
+    box.innerHTML = `<div class="lgHead"><b data-i18n="lg.title"></b><span class="sp"></span><button type="button" data-lg="copy" data-i18n="lg.copy"></button><button type="button" data-lg="close" data-i18n="lg.close"></button></div>
+      <div class="lgLabel" data-i18n="lg.now"></div><pre class="lgNow"></pre><div class="lgLabel" data-i18n="lg.recent"></div><pre class="lgLog"></pre>`;
+    document.body.appendChild(box);
+    if (window.MITTLER_I18N) MITTLER_I18N.apply(box);
+    box.addEventListener('click', e => {
+      const b = e.target.closest('[data-lg]'); if (!b) return;
+      if (b.dataset.lg === 'close') { box.hidden = true; return; }
+      const txt = box.querySelector('.lgNow').textContent + '\n\n' + box.querySelector('.lgLog').textContent;
+      const done = () => { b.textContent = $t('lg.copied'); setTimeout(() => { b.textContent = $t('lg.copy'); }, 1500); };
+      const fb = () => { try { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); if (document.execCommand('copy')) done(); ta.remove(); } catch (err) { } };
+      try { navigator.clipboard.writeText(txt).then(done, fb); } catch (err) { fb(); }
+    });
+    box.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') box.hidden = true; });
+  }
+  box.querySelector('.lgNow').textContent = String(S.status.msg || '');
+  box.querySelector('.lgLog').textContent = S.logBuf.length ? S.logBuf.join('\n') : $t('lg.empty');
+  box.hidden = false; const lg = box.querySelector('.lgLog'); lg.scrollTop = lg.scrollHeight;
+}
+$('status').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && ['act', 'bad', 'warn'].includes($('status').dataset.level)) { e.preventDefault(); e.stopPropagation(); $('status').click(); } });
 $('toEnd').addEventListener('click', () => { seek(dur()); const wr = $('lanesWrap'); wr.scrollLeft = Math.max(0, dur() * S.pps - wr.clientWidth + 80); });
 $('undo').addEventListener('click', undo);
 $('redo').addEventListener('click', redo);
@@ -1312,7 +1366,7 @@ function listen() {
         const prevTl = S.tl;
         S.tl = j.timeline; S.lastSaved = JSON.stringify(S.tl); if (S.sel && !findClip(S.sel)) S.sel = null;
         // 再生用の動画（preview.proxy）が外で変わった（API の proxy・export）：読み込み直す
-        const src = S.tl.preview && S.tl.preview.proxy ? projUrl(S.tl.preview.proxy) : '';
+        const src = proxySrc();
         if ($('proxy').getAttribute('src') !== src) { if (src) $('proxy').setAttribute('src', src); else $('proxy').removeAttribute('src'); }
         buildTimeline(); showSelSafe(); buildGradePanel(); buildMetaPanel(); setStatus($L('st.extReloaded'), 'ok'); redraw = true; S.ver++;
         if (window.MITTLER_FOLLOW) MITTLER_FOLLOW.onExternal(prevTl, S.tl);  // AI を追う（オートモード）：変わったクリップの真ん中へ（editor/remote.js）
@@ -1321,7 +1375,7 @@ function listen() {
     if (kinds.includes('effect')) { loadEffects(); S.ver++; }
     if (kinds.includes('characters')) { await loadChars(); buildTimeline(); showSelSafe(); }
     // 絵・動画のファイルが変わった（同じ名前で上書きも）：URL の印を変えて、サムネ・テイクの絵（plan.js）・プレビューを読み直す
-    if (kinds.includes('media')) { S.assetVer++; buildTimeline(); redraw = true; S.ver++; }
+    if (kinds.includes('media')) { S.assetVer++; buildTimeline(); redraw = true; S.ver++; const pv = $('proxy'); if (!S.playing && pv.src && pv.error) reloadProxy('ファイルが変わった'); }  // 読めなかった再生用の動画は、ファイルが変わったら読み直す
     if (window.MITTLER_ON_CHANGE) window.MITTLER_ON_CHANGE(kinds);
     if (redraw) invalidateExact();
   });

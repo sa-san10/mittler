@@ -25,6 +25,10 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
+# 画面の文は辞書から引く（言い回しを直しても、この確かめを直さなくて済むように）
+_JA = json.loads((ROOT / 'editor' / 'i18n' / 'ja.json').read_text(encoding='utf-8'))
+SAVE_FAIL = re.sub(r'\{icon:[^}]*\}\s*', '', _JA['st.saveFailed']).split('（')[0]
+SAVE_OK = _JA.get('st.saved', '保存しました').split('（')[0]
 fails = []
 FPS = 30
 
@@ -276,7 +280,7 @@ def b4(S, P, tlf):
     # 1. サーバーが 500 を返す
     P.ev("MITTLER_EDITOR.change(() => { findClip('a').clip.label = 'red-500'; })"); P.pg.wait_for_timeout(1200)  # time.sleep だと route が動かない
     s = st()
-    check('保存できなかった' in s[0] and '保存しました' not in s[0], f'B4 保存が 500 のとき「保存できなかった」と出る（「保存しました」で上書きしない）：{s[0][:70]}')
+    check(SAVE_FAIL in s[0] and SAVE_OK not in s[0], f'B4 保存が 500 のとき「保存できなかった」と出る（「保存しました」で上書きしない）：{s[0][:70]}')
     check(s[3] is False, 'B4 保存が 500 のとき、保存できたことにしない（lastSaved を入れない）')
     check(clip(read_tl(tlf), 'a')['label'] == 'red', 'B4 ファイルは前のまま（保存されていない）')
     mode['v'] = 'ok'
@@ -286,7 +290,7 @@ def b4(S, P, tlf):
     mode['v'] = 'abort'
     P.ev("MITTLER_EDITOR.change(() => { findClip('a').clip.label = 'red-abort'; })"); P.pg.wait_for_timeout(1200)
     s = st()
-    check('保存できなかった' in s[0], f'B4 通信が切れたとき「保存できなかった」と出る：{s[0][:70]}')
+    check(SAVE_FAIL in s[0], f'B4 通信が切れたとき「保存できなかった」と出る：{s[0][:70]}')
     check(s[2] is False, 'B4 通信が切れても、保存中の印（saving）が残らない')
     mode['v'] = 'ok'
     ok = P.wait(lambda: clip(read_tl(tlf), 'a')['label'] == 'red-abort', 12)

@@ -257,6 +257,14 @@ summary{cursor:pointer}
 /* 上のバーの 1 行の知らせ（#status）：種類で色が変わる（data-level は editor.js の setStatus が付ける）。押せる知らせ（act）はボタンの形 */
 .status{flex:0 1 auto;min-width:0;max-width:44vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-s);color:var(--dim);padding:2px 8px;border-radius:var(--r1);border:1px solid transparent}
 .status:empty{display:none}
+.status.clickLog{cursor:pointer}.status.clickLog:hover{text-decoration:underline;text-underline-offset:2px}
+/* 知らせとログの窓（上のバーの注意・失敗を押すと出る。editor.js の openLogPanel） */
+.logPanel{position:fixed;left:50%;top:56px;transform:translateX(-50%);width:min(900px,92vw);max-height:72vh;display:flex;flex-direction:column;gap:6px;z-index:60;background:var(--panel);color:var(--text);border:1px solid var(--line2);border-radius:var(--r2);padding:10px 12px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.logPanel[hidden]{display:none}
+.logPanel .lgHead{display:flex;align-items:center;gap:8px}.logPanel .sp{flex:1}
+.logPanel .lgLabel{color:var(--dim);font-size:var(--fs-xs)}
+.logPanel pre{margin:0;white-space:pre-wrap;word-break:break-all;user-select:text;-webkit-user-select:text;cursor:text;font-family:var(--vscode-editor-font-family,Consolas,monospace);font-size:var(--fs-xs);background:var(--btn2);padding:6px 8px;border-radius:var(--r1)}
+.logPanel .lgNow{max-height:9em;overflow:auto}.logPanel .lgLog{flex:1;min-height:6em;overflow:auto}
 .status[data-level="ok"]{color:var(--ok)}
 .status[data-level="busy"]{color:var(--info)}
 .status[data-level="warn"]{color:var(--warn);background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
